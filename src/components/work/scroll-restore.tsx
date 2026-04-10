@@ -12,6 +12,17 @@ const KEY = "home-scroll-y";
  */
 export default function ScrollRestore() {
   useEffect(() => {
+    // Hash navigation from inner pages (e.g. nav clicking "/#work")
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const target = document.getElementById(hash);
+      if (target) {
+        // Scroll immediately — no delay, no visible jump
+        target.scrollIntoView({ behavior: "instant", block: "start" });
+      }
+      return;
+    }
+
     // Restore on mount
     const stored = sessionStorage.getItem(KEY);
     if (stored) {

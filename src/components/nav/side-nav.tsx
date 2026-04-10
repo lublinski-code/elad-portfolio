@@ -10,17 +10,22 @@ const NOTCH_INSET = 8;
 const NOTCH_TRAVEL = PILL_HEIGHT - NOTCH_H - NOTCH_INSET * 2;
 
 export default function SideNav() {
-  const { activeId, progress, setActiveId } = useActiveSection();
+  const { activeId, progress, isInnerPage, pageTitle, setActiveId } = useActiveSection();
 
   const handleClick = (id: string) => {
-    // Immediately switch the active pill with notch at top
+    if (isInnerPage) {
+      // Navigate to main page, then scroll to section after load
+      window.location.href = `/#${id}`;
+      return;
+    }
     setActiveId(id as typeof activeId);
-
-    // Scroll the page to the section
     const el = document.getElementById(id);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  // Notch color: cream on main page, charcoal on inner pages
+  const notchColor = isInnerPage ? "var(--charcoal)" : "var(--cream)";
 
   return (
     <nav
@@ -55,8 +60,6 @@ export default function SideNav() {
         {sections.map((s) => {
           const isActive = s.id === activeId;
           const isSunflower = s.id === "contact";
-
-          // Notch translates from 8px to (300 - 32 - 8)px
           const notchTop = NOTCH_INSET + progress * NOTCH_TRAVEL;
 
           return (
@@ -71,27 +74,23 @@ export default function SideNav() {
                   "--pill-bg": s.bg,
                   "--pill-spacer": isActive ? `${PILL_HEIGHT - 73}px` : "0px",
                   width: 168,
-                  // Extra right padding on active pill so text doesn't collide with notch
                   padding: isActive ? "16px 32px 16px 16px" : "16px",
                 } as React.CSSProperties
               }
             >
-              {/* Expandable spacer — pushes content to bottom when active */}
               <div className="nav-pill-spacer" />
 
-              {/* Scroll progress notch */}
               <span
                 aria-hidden="true"
                 className="nav-notch pointer-events-none absolute right-[8px] w-[16px] rounded-[8px]"
                 style={{
                   height: NOTCH_H,
-                  background: "var(--cream)",
+                  background: notchColor,
                   top: notchTop,
                   opacity: isActive ? 1 : 0,
                 }}
               />
 
-              {/* Prefix glyph */}
               <span
                 className="block font-mono text-[11px] font-medium leading-normal"
                 style={{
@@ -104,7 +103,6 @@ export default function SideNav() {
                 #
               </span>
 
-              {/* Page label */}
               <span
                 className="block font-mono text-[14px] font-normal leading-normal"
                 style={{
@@ -113,6 +111,22 @@ export default function SideNav() {
               >
                 /{s.label}
               </span>
+
+              {/* Show current project title inside expanded work pill */}
+              {s.id === "work" && isActive && pageTitle && (
+                <span
+                  className="mt-[6px] block font-mono text-[11px] font-normal leading-normal"
+                  style={{
+                    color: "rgba(255,255,255,0.5)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: "100%",
+                  }}
+                >
+                  {pageTitle}
+                </span>
+              )}
             </button>
           );
         })}

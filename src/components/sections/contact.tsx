@@ -57,7 +57,7 @@ function ContactButton({ link }: { link: ContactLink }) {
         className="contact-btn relative flex items-center gap-[16px] rounded-[16px] p-[24px] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
         style={{ background: "var(--black)" }}
       >
-        <span className="flex-1 font-mono font-medium text-[18px] leading-normal min-w-0">
+        <span className="flex-1 font-mono font-medium text-[18px] leading-normal min-w-0 whitespace-nowrap">
           {link.label}
         </span>
         <Icon size={24} className="contact-btn-icon shrink-0" aria-hidden="true" />
@@ -116,7 +116,7 @@ export default function Contact() {
         />
 
         {/* Action buttons — wraps naturally at any width */}
-        <div className="grid grid-cols-1 gap-[16px] sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-[16px] sm:grid-cols-2 xl:grid-cols-4">
           {links.map((link) => (
             <ContactButton key={link.label} link={link} />
           ))}

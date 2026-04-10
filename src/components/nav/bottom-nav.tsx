@@ -5,7 +5,7 @@ import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 
 export default function BottomNav() {
-  const { activeId, progress, setActiveId } = useActiveSection();
+  const { activeId, progress, setActiveId, isInnerPage } = useActiveSection();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -21,6 +21,10 @@ export default function BottomNav() {
   }, [activeId]);
 
   const handleClick = (id: string) => {
+    if (isInnerPage) {
+      window.location.href = `/#${id}`;
+      return;
+    }
     setActiveId(id as typeof activeId);
     const el = document.getElementById(id);
     if (!el) return;

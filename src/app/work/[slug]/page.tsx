@@ -5,6 +5,7 @@ import {
   getWorkBySlug,
 } from "@/lib/content";
 import WorkPage from "@/components/work/work-page";
+import WorkPageMeta from "@/components/work/work-page-meta";
 
 export async function generateStaticParams() {
   const slugs = await getAllWorkSlugs();
@@ -26,11 +27,14 @@ export default async function Page({
   const next = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
 
   return (
-    <WorkPage
-      work={work}
-      prev={prev ? { slug: prev.slug, title: prev.title } : null}
-      next={next ? { slug: next.slug, title: next.title } : null}
-    />
+    <>
+      <WorkPageMeta title={work.title} />
+      <WorkPage
+        work={work}
+        prev={prev ? { slug: prev.slug, title: prev.title } : null}
+        next={next ? { slug: next.slug, title: next.title } : null}
+      />
+    </>
   );
 }
 

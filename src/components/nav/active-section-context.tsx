@@ -9,20 +9,25 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import { sections, type SectionId } from "./sections";
 
 type ActiveSectionState = {
   activeId: SectionId;
-  /** 0..1 progress — how far through the active section we've scrolled */
   progress: number;
-  /** Imperatively set the active section (used on click for instant switch) */
+  isInnerPage: boolean;
+  pageTitle: string | null;
   setActiveId: (id: SectionId) => void;
+  setPageTitle: (title: string | null) => void;
 };
 
 const ActiveSectionContext = createContext<ActiveSectionState>({
   activeId: "hi",
   progress: 0,
+  isInnerPage: false,
+  pageTitle: null,
   setActiveId: () => {},
+  setPageTitle: () => {},
 });
 
 function computeProgress(id: string): number {
@@ -38,27 +43,49 @@ function computeProgress(id: string): number {
   return Math.max(0, Math.min(1, raw));
 }
 
+/** On inner pages, compute progress based on total document scroll */
+function computePageProgress(): number {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  if (docHeight <= 0) return 0;
+  return Math.max(0, Math.min(1, scrollTop / docHeight));
+}
+
 export function ActiveSectionProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [activeId, setActiveIdState] = useState<SectionId>("hi");
-  const [progress, setProgress] = useState(0);
+  const pathname = usePathname();
+  const isInnerPage = pathname !== "/";
 
-  // Override: when user clicks a pill, lock to that section until scroll settles
+  const [activeId, setActiveIdState] = useState<SectionId>(
+    isInnerPage ? "work" : "hi",
+  );
+  const [progress, setProgress] = useState(0);
+  const [pageTitle, setPageTitle] = useState<string | null>(null);
+
   const overrideRef = useRef<SectionId | null>(null);
   const scrollIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Track whether we've "arrived" at the section top during override
   const arrivedRef = useRef(false);
 
-  const setActiveId = useCallback((id: SectionId) => {
-    overrideRef.current = id;
-    arrivedRef.current = false;
-    setActiveIdState(id);
-    // Notch starts at top
-    setProgress(0);
-  }, []);
+  // On inner pages, lock active to "work"
+  useEffect(() => {
+    if (isInnerPage) {
+      setActiveIdState("work");
+    }
+  }, [isInnerPage]);
+
+  const setActiveId = useCallback(
+    (id: SectionId) => {
+      if (isInnerPage) return; // Don't override on inner pages
+      overrideRef.current = id;
+      arrivedRef.current = false;
+      setActiveIdState(id);
+      setProgress(0);
+    },
+    [isInnerPage],
+  );
 
   useEffect(() => {
     let raf = 0;
@@ -66,22 +93,24 @@ export function ActiveSectionProvider({
     const compute = () => {
       raf = 0;
 
+      // Inner pages: track total page scroll, always locked to "work"
+      if (isInnerPage) {
+        setProgress(computePageProgress());
+        return;
+      }
+
       if (overrideRef.current) {
         const realProgress = computeProgress(overrideRef.current);
 
-        // Only start tracking once the section top has reached the viewport top
-        // (progress near 0 means we've arrived at the start of the section)
         if (!arrivedRef.current) {
           if (realProgress <= 0.05) {
             arrivedRef.current = true;
             setProgress(realProgress);
           }
-          // Otherwise keep progress at 0 (notch stays at top while scrolling to section)
         } else {
           setProgress(realProgress);
         }
 
-        // Reset idle timer — release override when scrolling stops
         if (scrollIdleTimer.current) clearTimeout(scrollIdleTimer.current);
         scrollIdleTimer.current = setTimeout(() => {
           overrideRef.current = null;
@@ -131,11 +160,11 @@ export function ActiveSectionProvider({
       if (raf) cancelAnimationFrame(raf);
       if (scrollIdleTimer.current) clearTimeout(scrollIdleTimer.current);
     };
-  }, []);
+  }, [isInnerPage]);
 
   const value = useMemo(
-    () => ({ activeId, progress, setActiveId }),
-    [activeId, progress, setActiveId],
+    () => ({ activeId, progress, isInnerPage, pageTitle, setActiveId, setPageTitle }),
+    [activeId, progress, isInnerPage, pageTitle, setActiveId],
   );
 
   return (
