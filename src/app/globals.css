@@ -1,80 +1,166 @@
 @import "tailwindcss";
 
 :root {
-  /* Background */
-  --bg: #ffffff;
+  /* Base canvas */
+  --cream: #f5f0eb;
+  --coal: #191919;
+  --charcoal: #2a2a2a;
+  --black: #0a0a0a;
+  --white: #ffffff;
 
-  /* Text */
-  --text-accent: rgba(0, 0, 0, 0.9);
-  --text-mute: rgba(0, 0, 0, 0.7);
-  --text-accessible: rgba(0, 0, 0, 0.5);
-  --text-light: rgba(0, 0, 0, 0.1);
+  /* Section colors */
+  --tomato: #eb4915;
+  --plum: #6b2ed6;
+  --sky: #507dff;
+  --pine: #399946;
+  --sunflower: #f5c015;
 
-  /* Card backgrounds */
-  --lemon: #dcfedd;
-  --sky: #daefff;
-  --banana: #fdf0bb;
+  /* Work colors (saturated, for inner page bg) */
+  --lemon: #5dfa00;
+  --grape: #726cff;
+  --cloud: #50a9ff;
+  --daffodil: #fdff00;
+  --mint: #00f1c1;
+  --candy: #ff02b8;
+  --orange: #ee6d35;
+
+  /* Work colors (soft, for cards / accents) */
+  --lime: #dcfedd;
   --lavender: #e2d5ff;
-  --mint: #d9f9f9;
-  --strawberry: #ffd0f2;
+  --iceberg: #daefff;
+  --pineapple: #fdf0bb;
+  --peppermint: #d9f9f9;
+  --marshmallow: #ffd0f2;
+  --papaya: #fbd0c2;
 
-  /* Card text colors */
-  --text-lemon: #0d5112;
-  --text-sky: #0b555e;
-  --text-banana: #55490e;
-  --text-lavender: #4c0f5b;
-  --text-mint: #0d594b;
-  --text-strawberry: #690d50;
-
-  /* Borders */
-  --border: black;
-}
-
-.dark {
-  --bg: #0a0a0a;
-
-  --text-accent: rgba(255, 255, 255, 0.9);
-  --text-mute: rgba(255, 255, 255, 0.7);
-  --text-accessible: rgba(255, 255, 255, 0.5);
-  --text-light: rgba(255, 255, 255, 0.1);
-
-  /* Darker, muted card backgrounds */
-  --lemon: #1a2e1a;
-  --sky: #162a35;
-  --banana: #2e2a14;
-  --lavender: #231a35;
-  --mint: #162e2e;
-  --strawberry: #2e1a28;
-
-  /* Lighter card text for dark mode */
-  --text-lemon: #8fd494;
-  --text-sky: #7ec8d4;
-  --text-banana: #d4c87e;
-  --text-lavender: #c49ed4;
-  --text-mint: #7ed4c0;
-  --text-strawberry: #d47eb8;
-
-  --border: white;
+  /* Per-section text tokens (set by section wrappers) */
+  --section-bg: var(--cream);
+  --section-display: var(--black);
+  --section-body: var(--black);
+  --section-mute: rgba(0, 0, 0, 0.6);
+  --section-divider: rgba(0, 0, 0, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--bg);
-  --color-foreground: var(--text-accent);
+  --color-background: var(--cream);
+  --color-foreground: var(--black);
   --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-body {
-  background: var(--bg);
-  color: var(--text-accent);
-  font-family: var(--font-space-grotesk), sans-serif;
-  transition: background-color 0.3s, color 0.3s;
+* {
+  box-sizing: border-box;
 }
 
 html {
+  background: var(--cream);
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--cream);
+  color: var(--black);
+  font-family: var(--font-space-grotesk), sans-serif;
+  margin: 0;
+  min-height: 100vh;
 }
 
 ::selection {
-  background: var(--lavender);
-  color: var(--text-lavender);
+  background: var(--tomato);
+  color: var(--cream);
+}
+
+/* Section wrapper utility — sets per-section text tokens */
+.section {
+  background: var(--section-bg);
+  color: var(--section-body);
+}
+
+/* Display headline — used for the giant per-section title.
+   Fluid sizing: grows with viewport, no hard cap on desktop.
+   48px floor (mobile) → 9.7vw (fluid) → uncapped. */
+.heading-display {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  color: var(--section-display);
+  font-size: clamp(48px, 9.7vw, 100vw);
+}
+
+/* Tight reset for buttons used as nav blocks */
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Focus ring — visible on every section background.
+   Inner ring uses currentColor (always contrasts with the bg the text sits on),
+   outer ring uses the inverse via box-shadow for separation. */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Hide scrollbar on horizontal nav strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Markdown body inside work inner pages */
+.work-body h1 {
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-top: 1.6em;
+}
+.work-body h1:first-child {
+  margin-top: 0;
+}
+.work-body h2 {
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin-top: 1.4em;
+}
+.work-body h3 {
+  font-size: 20px;
+  font-weight: 500;
+  margin-top: 1.2em;
+}
+.work-body p {
+  margin: 0;
+}
+.work-body ul,
+.work-body ol {
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+.work-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.08);
+}
+.work-body blockquote {
+  margin: 0;
+  padding-left: 1em;
+  border-left: 2px solid currentColor;
+  opacity: 0.85;
+  font-style: italic;
 }

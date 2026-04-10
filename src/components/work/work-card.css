@@ -1,0 +1,74 @@
+/* Work card — bevel hover effect.
+   Per-card accent colors are set as CSS custom properties:
+   --wc-vivid (saturated accent) and --wc-pastel (soft accent). */
+
+/* Card — sits on top of bevel */
+
+/* Card — slides on hover to reveal bevel */
+.work-card {
+  background: var(--coal);
+  transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.work-card-wrapper:hover .work-card {
+  transform: translate(8px, -8px);
+}
+
+/* ** marker — accessible white, transitions to vivid on hover */
+.wc-marker {
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.work-card-wrapper:hover .wc-marker,
+.work-card-wrapper:has(.work-card:focus-visible) .wc-marker {
+  color: var(--wc-vivid);
+}
+
+/* Title — white/90 */
+.wc-title {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Description — white/70 */
+.wc-desc {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Work type tag — pastel bg set via inline style, dark text */
+.wc-type-tag {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* Goal/impact tags — white/10 bg + white/50 text */
+.wc-goal-tag {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Arrow — white, transitions to vivid on hover */
+.wc-arrow {
+  color: white;
+  transition: color 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.work-card-wrapper:hover .wc-arrow,
+.work-card-wrapper:has(.work-card:focus-visible) .wc-arrow {
+  color: var(--wc-vivid);
+}
+
+/* Focus-visible on the card should also trigger the translate */
+.work-card-wrapper:has(.work-card:focus-visible) .work-card {
+  transform: translate(8px, -8px);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .work-card {
+    transition: none;
+  }
+  .work-card-wrapper:hover .work-card,
+  .work-card-wrapper:has(.work-card:focus-visible) .work-card {
+    transform: none;
+  }
+}

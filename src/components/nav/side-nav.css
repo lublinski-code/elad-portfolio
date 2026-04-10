@@ -1,0 +1,35 @@
+/* Side nav pill — expand/collapse + hover height bump */
+
+.nav-pill {
+  background: var(--pill-bg);
+  cursor: pointer;
+  transition: padding 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Hover: height increase that pushes neighbors apart */
+.nav-pill:hover {
+  padding-top: 24px !important;
+  padding-bottom: 24px !important;
+}
+
+/* Spacer for expand/collapse — smooth rubbery spring with overshoot */
+.nav-pill-spacer {
+  height: var(--pill-spacer, 0px);
+  transition: height 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Notch — smooth floaty tracking with gentle ease */
+.nav-notch {
+  transition:
+    top 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 350ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .nav-pill,
+  .nav-pill-spacer,
+  .nav-notch {
+    transition: none !important;
+  }
+}
