@@ -3,8 +3,8 @@ title: Re-engaging GrabTap Players with Smarter Notifications & Live Ops
 subtitle: A retention system we designed but didn't ship - and what I learned from that.
 category: Case Study
 tags: [Retention, 8 weeks, Deprioritized before launch]
-bg: candy
-fg: white
+bg: mint
+fg: black
 order: 6
 published: true
 ---

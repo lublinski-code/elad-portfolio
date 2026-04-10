@@ -3,7 +3,7 @@ title: Building a stronger connection between players and creators with Group Ch
 subtitle: How a point-staking system drove installs and community engagement without increasing spend.
 category: Case Study
 tags: [Retention, Engagement, 6 weeks, +10-13% conversion]
-bg: mint
+bg: orange
 fg: black
 order: 5
 published: true

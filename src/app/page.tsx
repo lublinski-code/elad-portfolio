@@ -14,6 +14,7 @@ export default function Home() {
       <main
         className="
           min-h-screen
+          animate-[pageEnter_600ms_cubic-bezier(0.32,0.72,0,1)_both]
           px-[24px] pt-[24px]
           pb-[calc(24px+72px+env(safe-area-inset-bottom))]
           md:pl-[16px] md:pr-[48px] md:pt-[48px] md:pb-[48px]

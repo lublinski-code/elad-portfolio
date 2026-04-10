@@ -3,8 +3,8 @@ title: "An 80% loss of players after campaigns ended forced us to focus on a new
 subtitle: How we shifted from creator-only to audience-first and unlocked retention, LTV, and new acquisition channels.
 category: Case Study
 tags: [Retention, Lifetime Value, 13 weeks, +21% ROAS D30]
-bg: orange
-fg: white
+bg: daffodil
+fg: black
 order: 4
 published: true
 ---

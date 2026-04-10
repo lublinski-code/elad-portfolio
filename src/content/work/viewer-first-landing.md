@@ -3,7 +3,7 @@ title: Boosting Sponsorship Conversion With Viewer-First Landing Pages
 subtitle: How simplifying intent and removing friction increased installs and login rates.
 category: Case Study
 tags: [Conversion, 3 weeks, +12% game installs]
-bg: daffodil
+bg: candy
 fg: black
 order: 7
 published: true

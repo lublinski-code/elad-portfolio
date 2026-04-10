@@ -16,6 +16,7 @@ type ActiveSectionState = {
   activeId: SectionId;
   progress: number;
   isInnerPage: boolean;
+  isTransitioning: boolean;
   pageTitle: string | null;
   setActiveId: (id: SectionId) => void;
   setPageTitle: (title: string | null) => void;
@@ -25,6 +26,7 @@ const ActiveSectionContext = createContext<ActiveSectionState>({
   activeId: "hi",
   progress: 0,
   isInnerPage: false,
+  isTransitioning: false,
   pageTitle: null,
   setActiveId: () => {},
   setPageTitle: () => {},
@@ -64,10 +66,23 @@ export function ActiveSectionProvider({
   );
   const [progress, setProgress] = useState(0);
   const [pageTitle, setPageTitle] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const overrideRef = useRef<SectionId | null>(null);
   const scrollIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const arrivedRef = useRef(false);
+  const prevPathRef = useRef(pathname);
+
+  // Detect page transitions: suppress nav animations briefly when pathname changes
+  useEffect(() => {
+    if (prevPathRef.current !== pathname) {
+      prevPathRef.current = pathname;
+      setIsTransitioning(true);
+      // Keep transitions suppressed long enough for layout to settle
+      const timer = setTimeout(() => setIsTransitioning(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [pathname]);
 
   // On inner pages, lock active to "work"
   useEffect(() => {
@@ -163,8 +178,8 @@ export function ActiveSectionProvider({
   }, [isInnerPage]);
 
   const value = useMemo(
-    () => ({ activeId, progress, isInnerPage, pageTitle, setActiveId, setPageTitle }),
-    [activeId, progress, isInnerPage, pageTitle, setActiveId],
+    () => ({ activeId, progress, isInnerPage, isTransitioning, pageTitle, setActiveId, setPageTitle }),
+    [activeId, progress, isInnerPage, isTransitioning, pageTitle, setActiveId],
   );
 
   return (

@@ -25,6 +25,13 @@
     opacity 350ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* Suppress all transitions during page navigation */
+.nav-no-transition .nav-pill,
+.nav-no-transition .nav-pill-spacer,
+.nav-no-transition .nav-notch {
+  transition: none !important;
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .nav-pill,

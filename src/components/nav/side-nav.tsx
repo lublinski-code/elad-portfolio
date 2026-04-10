@@ -10,7 +10,7 @@ const NOTCH_INSET = 8;
 const NOTCH_TRAVEL = PILL_HEIGHT - NOTCH_H - NOTCH_INSET * 2;
 
 export default function SideNav() {
-  const { activeId, progress, isInnerPage, pageTitle, setActiveId } = useActiveSection();
+  const { activeId, progress, isInnerPage, isTransitioning, pageTitle, setActiveId } = useActiveSection();
 
   const handleClick = (id: string) => {
     if (isInnerPage) {
@@ -30,7 +30,7 @@ export default function SideNav() {
   return (
     <nav
       aria-label="Sections"
-      className="fixed left-0 top-0 z-30 hidden md:block"
+      className={`fixed left-0 top-0 z-30 hidden md:block${isTransitioning ? " nav-no-transition" : ""}`}
       style={{ width: 232 }}
     >
       <div

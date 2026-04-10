@@ -5,7 +5,7 @@ import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 
 export default function BottomNav() {
-  const { activeId, progress, setActiveId, isInnerPage } = useActiveSection();
+  const { activeId, progress, setActiveId, isInnerPage, isTransitioning } = useActiveSection();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -67,7 +67,7 @@ export default function BottomNav() {
               type="button"
               onClick={() => handleClick(s.id)}
               aria-current={isActive ? "true" : undefined}
-              className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] px-[16px] py-[16px] text-left transition-[flex] duration-[220ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className={`relative flex shrink-0 items-center overflow-hidden rounded-[16px] px-[16px] py-[16px] text-left${isTransitioning ? "" : " transition-[flex] duration-[220ms] ease-[cubic-bezier(0.32,0.72,0,1)]"}`}
               style={{
                 background: s.bg,
                 // Active section gets wider pill

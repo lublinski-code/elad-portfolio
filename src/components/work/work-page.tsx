@@ -9,30 +9,26 @@ type Props = {
   next: Pick<WorkMeta, "slug" | "title"> | null;
 };
 
+const LINE_HEIGHT = 1.15;
+
 export default function WorkPage({ work, prev, next }: Props) {
   const accent = workAccentVivid(work.bg as WorkAccent);
   const pastel = workAccentPastel(work.bg as WorkAccent);
   const isDark = work.fg === "white";
   const accentFg = isDark ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.9)";
   const accentMute = isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)";
-
-  const titleWords = work.title.split(" ");
-  const mid = Math.ceil(titleWords.length / 3);
-  const titleLines = [
-    titleWords.slice(0, mid).join(" "),
-    titleWords.slice(mid, mid * 2).join(" "),
-    titleWords.slice(mid * 2).join(" "),
-  ].filter(Boolean);
+  const dividerColor = isDark
+    ? "rgba(255,255,255,0.25)"
+    : "rgba(0,0,0,0.2)";
 
   return (
     <div
-      className="min-h-screen animate-[fadeIn_800ms_cubic-bezier(0.32,0.72,0,1)]"
+      className="min-h-screen animate-[pageEnter_600ms_cubic-bezier(0.32,0.72,0,1)_both]"
       style={{ background: "var(--charcoal)" }}
     >
       <BodyBackground color="#2a2a2a" />
       <WorkFloater prev={prev} next={next} />
 
-      {/* Same layout shell as main page — nav offset + padding */}
       <main
         className="
           px-[24px] pt-[8px]
@@ -42,16 +38,51 @@ export default function WorkPage({ work, prev, next }: Props) {
         "
       >
         <div className="flex flex-col gap-[24px]">
-          {/* Hero card — per-work accent color */}
+          {/* Hero card */}
           <div
-            className="flex flex-col justify-end rounded-[24px] p-[24px] md:p-[48px]"
+            className="flex flex-col justify-between rounded-[24px] p-[24px] md:p-[48px]"
             style={{
               background: accent,
-              minHeight: "clamp(280px, 36vw, 520px)",
+              minHeight: "clamp(400px, 50vw, 720px)",
             }}
           >
-            {/* Tags */}
-            <div className="flex flex-wrap gap-[8px] mb-[24px]">
+            {/* Top: subtitle */}
+            <p
+              className="font-sans font-medium leading-[1.35]"
+              style={{
+                fontSize: "clamp(22px, 3vw, 40px)",
+                color: accentFg,
+                maxWidth: "90%",
+              }}
+            >
+              {work.subtitle}
+            </p>
+
+            {/* Title with per-line dividers via repeating gradient */}
+            <h1
+              className="font-sans font-medium"
+              style={{
+                fontSize: "clamp(36px, 7.5vw, 108px)",
+                lineHeight: LINE_HEIGHT,
+                letterSpacing: "-0.02em",
+                color: accentFg,
+                marginTop: "48px",
+                backgroundImage: `repeating-linear-gradient(
+                  to bottom,
+                  transparent 0,
+                  transparent calc(${LINE_HEIGHT}em - 1px),
+                  ${dividerColor} calc(${LINE_HEIGHT}em - 1px),
+                  ${dividerColor} ${LINE_HEIGHT}em
+                )`,
+                backgroundClip: "content-box",
+                paddingBottom: `${LINE_HEIGHT - 1}em`,
+              }}
+            >
+              {work.title}
+            </h1>
+
+            {/* Bottom: tags */}
+            <div className="flex flex-wrap gap-[8px] mt-[24px]">
               <span
                 className="inline-flex items-center rounded-[4px] px-[8px] py-[4px] font-normal leading-[1.5]"
                 style={{
@@ -68,7 +99,9 @@ export default function WorkPage({ work, prev, next }: Props) {
                   className="inline-flex items-center rounded-[4px] px-[8px] py-[4px] font-normal leading-[1.5]"
                   style={{
                     fontSize: "clamp(12px, 1vw, 14px)",
-                    background: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)",
+                    background: isDark
+                      ? "rgba(255,255,255,0.15)"
+                      : "rgba(0,0,0,0.1)",
                     color: accentMute,
                   }}
                 >
@@ -76,53 +109,9 @@ export default function WorkPage({ work, prev, next }: Props) {
                 </span>
               ))}
             </div>
-
-            {/* Title lines — alternating alignment with dividers */}
-            <div className="flex flex-col gap-[8px]">
-              {titleLines.map((line, i) => (
-                <div key={i} className="flex flex-col gap-[8px]">
-                  <div
-                    aria-hidden="true"
-                    style={{ height: "1px", background: accentMute, width: "100%" }}
-                  />
-                  <p
-                    className="font-sans font-medium leading-none"
-                    style={{
-                      fontSize: "clamp(36px, 7.5vw, 108px)",
-                      color: accentFg,
-                      textAlign: i % 2 === 0 ? "left" : "right",
-                    }}
-                  >
-                    {line}
-                  </p>
-                </div>
-              ))}
-              <div
-                aria-hidden="true"
-                style={{ height: "1px", background: accentMute, width: "100%" }}
-              />
-            </div>
           </div>
 
-          {/* Subtitle card */}
-          <div
-            className="rounded-[24px] p-[24px] md:p-[48px]"
-            style={{
-              border: "1px solid rgba(255,255,255,0.15)",
-            }}
-          >
-            <p
-              className="font-sans font-normal leading-normal"
-              style={{
-                fontSize: "clamp(20px, 2.5vw, 32px)",
-                color: "rgba(255,255,255,0.7)",
-              }}
-            >
-              {work.subtitle}
-            </p>
-          </div>
-
-          {/* Body content card — cream bg */}
+          {/* Body content card */}
           <div
             className="rounded-[24px] p-[24px] md:p-[48px]"
             style={{ background: "var(--cream)" }}
