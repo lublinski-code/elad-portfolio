@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 import "./side-nav.css";
@@ -37,10 +38,17 @@ export default function SideNav() {
         className="flex w-full flex-col gap-[8px]"
         style={{ padding: "48px 16px 48px 48px" }}
       >
-        {/* Identity card — not interactive */}
-        <div
-          className="flex shrink-0 flex-col gap-[8px] rounded-[16px] bg-white p-[16px]"
-          style={{ width: 168 }}
+        {/* Identity card — links to top */}
+        <Link
+          href="/"
+          onClick={(e) => {
+            if (!isInnerPage) {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          className="nav-pill flex shrink-0 flex-col gap-[8px] rounded-[16px] p-[16px]"
+          style={{ "--pill-bg": "#ffffff", width: 168 } as React.CSSProperties}
         >
           <span
             className="font-mono text-[11px] font-medium leading-normal"
@@ -54,7 +62,7 @@ export default function SideNav() {
           >
             Lublinski
           </span>
-        </div>
+        </Link>
 
         {/* Section pills */}
         {sections.map((s) => {
