@@ -32,25 +32,61 @@ const ActiveSectionContext = createContext<ActiveSectionState>({
   setPageTitle: () => {},
 });
 
-function computeProgress(id: string): number {
-  const el = document.getElementById(id);
-  if (!el) return 0;
-  const rect = el.getBoundingClientRect();
-  const vh = window.innerHeight;
-  const scrollable = rect.height - vh;
-  if (scrollable <= 0) {
-    return rect.top <= 0 ? 1 : 0;
-  }
-  const raw = -rect.top / scrollable;
-  return Math.max(0, Math.min(1, raw));
+/** Global page progress for inner (work) pages */
+function computePageProgress(): number {
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  if (maxScroll <= 0) return 0;
+  return Math.max(0, Math.min(1, window.scrollY / maxScroll));
 }
 
-/** On inner pages, compute progress based on total document scroll */
-function computePageProgress(): number {
-  const scrollTop = window.scrollY;
-  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-  if (docHeight <= 0) return 0;
-  return Math.max(0, Math.min(1, scrollTop / docHeight));
+/**
+ * Compute boundary-based progress for a section.
+ * Maps the scrollY range during which the section is active to 0→1.
+ *
+ * Boundaries are the midpoints between adjacent sections — roughly where
+ * the viewport-center detection switches from one section to the next.
+ */
+/**
+ * Progress 0→1 across the scroll range where this section is active.
+ * Uses the same midpoint logic as the detection, so progress always
+ * reaches exactly 0 at the start and 1 at the end of the active range.
+ */
+function computeBoundaryProgress(
+  activeIdx: number,
+  rects: (DOMRect | null)[],
+  scrollY: number,
+  vh: number,
+  maxScroll: number,
+): number {
+  const center = vh / 2;
+
+  // Start: where this section becomes active (midpoint from prev)
+  let startScroll = 0;
+  if (activeIdx > 0) {
+    const prevRect = rects[activeIdx - 1];
+    const thisRect = rects[activeIdx];
+    if (prevRect && thisRect) {
+      const prevBottom = scrollY + prevRect.bottom;
+      const thisTop = scrollY + thisRect.top;
+      startScroll = Math.max(0, (prevBottom + thisTop) / 2 - center);
+    }
+  }
+
+  // End: where this section loses active (midpoint to next)
+  let endScroll = maxScroll;
+  if (activeIdx < sections.length - 1) {
+    const thisRect = rects[activeIdx];
+    const nextRect = rects[activeIdx + 1];
+    if (thisRect && nextRect) {
+      const thisBottom = scrollY + thisRect.bottom;
+      const nextTop = scrollY + nextRect.top;
+      endScroll = Math.max(startScroll, (thisBottom + nextTop) / 2 - center);
+    }
+  }
+
+  const range = endScroll - startScroll;
+  if (range <= 0) return scrollY >= startScroll ? 1 : 0;
+  return Math.max(0, Math.min(1, (scrollY - startScroll) / range));
 }
 
 export function ActiveSectionProvider({
@@ -78,7 +114,6 @@ export function ActiveSectionProvider({
     if (prevPathRef.current !== pathname) {
       prevPathRef.current = pathname;
       setIsTransitioning(true);
-      // Keep transitions suppressed long enough for layout to settle
       const timer = setTimeout(() => setIsTransitioning(false), 600);
       return () => clearTimeout(timer);
     }
@@ -93,7 +128,7 @@ export function ActiveSectionProvider({
 
   const setActiveId = useCallback(
     (id: SectionId) => {
-      if (isInnerPage) return; // Don't override on inner pages
+      if (isInnerPage) return;
       overrideRef.current = id;
       arrivedRef.current = false;
       setActiveIdState(id);
@@ -108,22 +143,36 @@ export function ActiveSectionProvider({
     const compute = () => {
       raf = 0;
 
-      // Inner pages: track total page scroll, always locked to "work"
       if (isInnerPage) {
         setProgress(computePageProgress());
         return;
       }
 
-      if (overrideRef.current) {
-        const realProgress = computeProgress(overrideRef.current);
+      const scrollY = window.scrollY;
+      const vh = window.innerHeight;
+      const viewportCenter = vh / 2;
+      const maxScroll = document.documentElement.scrollHeight - vh;
 
-        if (!arrivedRef.current) {
-          if (realProgress <= 0.05) {
-            arrivedRef.current = true;
-            setProgress(realProgress);
+      // Collect all section rects
+      const rects: (DOMRect | null)[] = sections.map((s) => {
+        const el = document.getElementById(s.id);
+        return el ? el.getBoundingClientRect() : null;
+      });
+
+      // Handle click-override: keep active section locked, compute its progress
+      if (overrideRef.current) {
+        const idx = sections.findIndex((s) => s.id === overrideRef.current);
+        if (idx >= 0) {
+          const p = computeBoundaryProgress(idx, rects, scrollY, vh, maxScroll);
+
+          if (!arrivedRef.current) {
+            if (p <= 0.05) {
+              arrivedRef.current = true;
+              setProgress(p);
+            }
+          } else {
+            setProgress(p);
           }
-        } else {
-          setProgress(realProgress);
         }
 
         if (scrollIdleTimer.current) clearTimeout(scrollIdleTimer.current);
@@ -134,15 +183,22 @@ export function ActiveSectionProvider({
         return;
       }
 
-      const vh = window.innerHeight;
-      const viewportCenter = vh / 2;
+      // At bottom of page: force last section active
+      if (scrollY >= maxScroll - 2) {
+        const lastIdx = sections.length - 1;
+        setActiveIdState(sections[lastIdx].id);
+        setProgress(1);
+        return;
+      }
+
+      // Find active section (closest to viewport center)
       let bestId: SectionId = "hi";
       let bestDistance = Infinity;
+      let bestIdx = 0;
 
-      for (const s of sections) {
-        const el = document.getElementById(s.id);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
+      for (let i = 0; i < sections.length; i++) {
+        const rect = rects[i];
+        if (!rect) continue;
         const inside =
           rect.top <= viewportCenter && rect.bottom >= viewportCenter;
         const distance = inside
@@ -153,12 +209,13 @@ export function ActiveSectionProvider({
             );
         if (distance < bestDistance) {
           bestDistance = distance;
-          bestId = s.id;
+          bestId = sections[i].id;
+          bestIdx = i;
         }
       }
 
       setActiveIdState(bestId);
-      setProgress(computeProgress(bestId));
+      setProgress(computeBoundaryProgress(bestIdx, rects, scrollY, vh, maxScroll));
     };
 
     const onScroll = () => {

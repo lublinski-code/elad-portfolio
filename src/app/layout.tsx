@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import RootShell from "@/components/nav/root-shell";
+import InnerSideNavServer from "@/components/nav/inner-side-nav-server";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}>
       <body className="min-h-screen">
-        <RootShell>{children}</RootShell>
+        <RootShell innerNav={<InnerSideNavServer />}>{children}</RootShell>
       </body>
     </html>
   );

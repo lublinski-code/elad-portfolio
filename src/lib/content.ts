@@ -2,56 +2,57 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import { remark } from "remark";
+import remarkGfm from "remark-gfm";
 import html from "remark-html";
 
 const WORK_DIR = path.join(process.cwd(), "src", "content", "work");
 
 export type WorkColor =
-  | "lemon"
   | "grape"
-  | "cloud"
-  | "daffodil"
-  | "orange"
+  | "lime"
+  | "sunflower"
+  | "sky"
   | "mint"
   | "candy"
-  | "lime"
+  | "lemon"
   | "lavender"
-  | "iceberg"
+  | "sprite"
   | "pineapple"
-  | "papaya"
+  | "iceberg"
   | "peppermint"
-  | "marshmallow";
+  | "marshmello"
+  | "lemonade";
 
 /** Accent name used in frontmatter (vivid colors only) */
 export type WorkAccent =
-  | "lemon"
   | "grape"
-  | "cloud"
-  | "daffodil"
-  | "orange"
+  | "lime"
+  | "sunflower"
+  | "sky"
   | "mint"
-  | "candy";
+  | "candy"
+  | "lemon";
 
 /** Maps vivid accent name to raw hex (for reliable inline styles) */
 const accentToVividHex: Record<WorkAccent, string> = {
-  lemon: "#5dfa00",
-  grape: "#726cff",
-  cloud: "#50a9ff",
-  daffodil: "#fdff00",
-  orange: "#ee6d35",
-  mint: "#00f1c1",
-  candy: "#ff02b8",
+  grape: "#6b2ed6",
+  lime: "#399946",
+  sunflower: "#f5c015",
+  sky: "#507dff",
+  mint: "#00d8ad",
+  candy: "#e800a7",
+  lemon: "#54e100",
 };
 
 /** Maps vivid accent name to its pastel hex counterpart */
 const accentToPastelHex: Record<WorkAccent, string> = {
-  lemon: "#dcfedd",
-  grape: "#e2d5ff",
-  cloud: "#daefff",
-  daffodil: "#fdf0bb",
-  orange: "#fbd0c2",
-  mint: "#d9f9f9",
+  grape: "#dfd2f6",
+  lime: "#d5f1d9",
+  sunflower: "#fbe9ab",
+  sky: "#d9e3ff",
+  mint: "#b4f6e9",
   candy: "#ffd0f2",
+  lemon: "#d4ffba",
 };
 
 /** Get the vivid hex for an accent */
@@ -67,9 +68,14 @@ export type WorkCategory = "Case Study" | "Side Project" | "Personal";
 export type WorkMeta = {
   slug: string;
   title: string;
+  navLabel: string;
   subtitle: string;
   category: WorkCategory;
   tags: string[];
+  timeline: string;
+  role: string;
+  team: string;
+  impact: string;
   bg: WorkColor;
   fg: "black" | "white";
   order: number;
@@ -93,9 +99,14 @@ function parseMeta(slug: string, data: Record<string, unknown>): WorkMeta {
   return {
     slug,
     title: String(data.title ?? "Untitled"),
+    navLabel: String(data.navLabel ?? data.title ?? "Untitled"),
     subtitle: String(data.subtitle ?? ""),
     category: (data.category as WorkCategory) ?? "Case Study",
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    timeline: String(data.timeline ?? ""),
+    role: String(data.role ?? ""),
+    team: String(data.team ?? ""),
+    impact: String(data.impact ?? ""),
     bg: (data.bg as WorkColor) ?? "lavender",
     fg: (data.fg as "black" | "white") ?? "black",
     order: Number(data.order ?? 999),
@@ -129,8 +140,19 @@ export async function getWorkBySlug(slug: string): Promise<Work | null> {
   const { data, content } = matter(raw);
   const meta = parseMeta(slug, data);
   if (!meta.published) return null;
-  const processed = await remark().use(html).process(content);
+  const processed = await remark().use(remarkGfm).use(html, { sanitize: false }).process(content);
   return { ...meta, bodyHtml: String(processed) };
+}
+
+export async function getAdjacentWork(
+  slug: string,
+): Promise<{ next: WorkMeta | null; prev: WorkMeta | null }> {
+  const all = await getAllWorkMeta();
+  const idx = all.findIndex((w) => w.slug === slug);
+  return {
+    prev: idx > 0 ? all[idx - 1] : null,
+    next: idx < all.length - 1 ? all[idx + 1] : null,
+  };
 }
 
 export async function getAllWorkSlugs(): Promise<string[]> {

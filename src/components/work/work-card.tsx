@@ -25,13 +25,13 @@ export default function WorkCard({ work }: { work: WorkMeta }) {
     >
       {/* Bevel — sits at resting position, revealed when card lifts */}
       <div
-        className="absolute inset-0 rounded-[24px]"
+        className="absolute inset-0 rounded-[16px]"
         style={{ background: vivid }}
         aria-hidden="true"
       />
       <Link
         href={`/work/${work.slug}`}
-        className="work-card group relative block rounded-[24px] p-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--coal)]"
+        className="work-card group relative block rounded-[16px] p-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--coal)]"
       >
         {/* Desktop: single row. Mobile: vertical stack */}
         <div className="flex flex-col items-start gap-[24px] md:flex-row">
@@ -45,15 +45,15 @@ export default function WorkCard({ work }: { work: WorkMeta }) {
 
           {/* Content column */}
           <div className="flex min-w-0 flex-1 flex-col gap-[8px]">
-            <p className="wc-title font-normal leading-normal" style={{ fontSize: "clamp(22px, 2.2vw, 28px)" }}>
+            <p className="wc-title font-normal" style={{ fontSize: "clamp(22px, 2.2vw, 28px)", lineHeight: 1.4 }}>
               {work.title}
             </p>
-            <p className="wc-desc font-normal leading-normal" style={{ fontSize: "clamp(15px, 1.4vw, 18px)" }}>
+            <p className="wc-desc font-normal" style={{ fontSize: "clamp(15px, 1.4vw, 18px)", lineHeight: 1.4 }}>
               {work.subtitle}
             </p>
 
             {/* Tags */}
-            <div className="mt-[4px] flex flex-wrap items-center gap-[8px]">
+            <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
               {/* Work type tag — pastel bg applied directly (CSS var was mangled by SSR) */}
               <span
                 className="wc-type-tag inline-flex items-center rounded-[4px] px-[8px] py-[4px] text-[14px] font-normal leading-[1.5]"

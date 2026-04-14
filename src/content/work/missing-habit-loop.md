@@ -1,25 +1,40 @@
 ---
-title: Re-engaging GrabTap Players with Smarter Notifications & Live Ops
-subtitle: A retention system we designed but didn't ship - and what I learned from that.
+title: The missing habit loop.
+navLabel: missing-habit-loop
+subtitle: "Re-engaging GrabTap Players with Smarter Notifications & Live Ops"
 category: Case Study
-tags: [Retention, 8 weeks, Deprioritized before launch]
+tags: [Retention]
+timeline: "8 weeks"
+role: Product Design Lead
+team: "BE Engineer, FE Engineer"
+impact: "Deprioritized before launch"
 bg: mint
 fg: black
 order: 6
 published: true
 ---
 
+#### Context
+
 ## Background
 
-GrabTap is a play-to-earn app that rewards players with points for completing game missions, which they can redeem as gift cards. However, progression inside the games was the only reason for players to return - there was no additional motivation or lifecycle to keep them engaged over time.
+GrabTap rewards players with points for completing game missions, redeemable as gift cards. But progression inside individual games was the only reason to return. There was no lifecycle layer, no re-engagement system, and no reason to open GrabTap specifically once a game session ended.
 
-## The Problem
+---
+
+#### Problem
+
+## No reason to come back
 
 Players completed a few missions during their first session and didn't return. The games had their own retention mechanics, but players needed additional motivation to come back to GrabTap specifically.
 
 Data showed a clear pattern: user acquisition was amplifying the retention problem. Without engagement loops, more users simply meant more churn. A leaky bucket.
 
-## How I Got There
+---
+
+#### Process
+
+## How I got there
 
 ### Mapping the lifecycle
 
@@ -27,33 +42,70 @@ I mapped the player journey and identified key moments where we were losing peop
 
 ### Researching patterns
 
-I looked at similar systems in play-to-earn apps and mobile games. The common thread: successful apps don't wait for users to return - they create reasons to come back.
+I looked at similar systems in play-to-earn apps and mobile games. The common thread: successful apps don't wait for users to return. They create reasons to come back.
+
+### Designing the retention pillars
+
+I broke down the retention system into three pillars: notifications (push + in-app), lifecycle emails, and live ops events. Each pillar addressed a different drop-off moment in the player journey.
+
+> **The insight:** GrabTap had no communication layer at all. Players earned points, closed the app, and forgot about it. We needed to close the loop between earning and returning.
 
 ### Balancing nudges and fatigue
 
 The challenge was finding the line between helpful reminders and annoying spam. I designed trigger logic based on player behavior, not just time intervals.
 
+<details>
+<summary>Process: retention strategy and wireframes</summary>
+
+![Retention strategy mapping goals to engagement loops](/work/missing-habit-loop/retention-strategy.png)
+
+![Three retention pillars: notifications, emails, live ops](/work/missing-habit-loop/retention-pillars.png)
+
+![Player lifecycle flow with drop-off points and interventions](/work/missing-habit-loop/lifecycle-flow.png)
+
+![Design solutions overview across notification types](/work/missing-habit-loop/design-solutions.png)
+
+![Games page with notification bell indicator](/work/missing-habit-loop/games-with-bell.png)
+
+![Notification center wireframes](/work/missing-habit-loop/notifications-wireframe.png)
+
+![Weekly email summary design](/work/missing-habit-loop/weekly-email.png)
+
+</details>
+
+---
+
+#### Solution
+
 ## What We Designed
 
 ### Notification center
 
-In-app hub for all alerts across mobile and web. Missions, rewards, reminders, new games.
+In-app hub for all alerts across mobile and web. Missions, rewards, reminders, new games. A central place that made player progress visible and actionable.
+
+![Notification center overlay with mission alerts and reward updates](/work/missing-habit-loop/notifications-overlay.png)
+
+<p class="img-caption">The notification center collected all player-relevant updates in one place, giving players a reason to check back</p>
 
 ### Push notifications
 
-Triggered by player progress and milestones:
+Triggered by player progress and milestones, not arbitrary time intervals:
 
 - "Don't quit now! Give [mission] another go"
 - "Halfway there! Finish more missions to unlock your reward"
 - "New games just dropped"
 
-### Email summaries
+![Push notification designs for mobile](/work/missing-habit-loop/push-notifications.png)
 
-Time-limited multipliers to create urgency and make missions feel more rewarding.
+<p class="img-caption">Push notifications were designed around player behavior triggers, making each message feel relevant rather than spammy</p>
 
-### Backend tracking
+### Dark mode notification view
 
-Mission and gift card progress tracking to enable smart, personalized triggers.
+![Notification center in dark mode](/work/missing-habit-loop/notifications-dark.png)
+
+---
+
+#### Outcome
 
 ## Why It Didn't Ship
 
@@ -63,7 +115,7 @@ I presented a case for continuing this work. My argument: for an app like GrabTa
 
 But with limited resources, we had to make tough decisions. The project was deprioritized.
 
-## What Would Have Happened
+### What would have happened
 
 Had it launched, we anticipated:
 
@@ -71,6 +123,10 @@ Had it launched, we anticipated:
 - Habit loop formation through daily nudges
 - Rewards and progress feeling tangible and within reach
 - Higher long-term retention through momentum and feedback
+
+---
+
+#### Reflection
 
 ## What I Learned
 

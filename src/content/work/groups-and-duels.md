@@ -1,27 +1,42 @@
 ---
-title: Building a stronger connection between players and creators with Group Challenges & Duels
-subtitle: How a point-staking system drove installs and community engagement without increasing spend.
+title: We were losing players, so we changed the game.
+navLabel: groups-and-duels
+subtitle: "How we've built a stronger connection between players and creators by Introducing Group Challenges & Duels"
 category: Case Study
-tags: [Retention, Engagement, 6 weeks, +10-13% conversion]
-bg: orange
+tags: [Retention, Engagement]
+timeline: "6 weeks"
+role: Product Design Lead
+team: "BE Engineer, FE Engineer"
+impact: "+10-13% conversion | +4% return visits to community page"
+bg: lime
 fg: black
 order: 5
 published: true
 ---
 
+#### Context
+
 ## Background
 
-GrabTap works like a standard play to earn app - players earn points for playing games and redeem rewards as gift cards. What makes it unique is the community layer: Content creators can host their own page, invite their audience, and turn gameplay into an engaging community activity.
+GrabTap works like a standard play-to-earn app -- players earn points for playing games and redeem rewards as gift cards. What makes it unique is the community layer: content creators can host their own page, invite their audience, and turn gameplay into an engaging community activity.
 
 However, once inside, players had little reason to interact beyond checking the leaderboard. There was no sense of community or added value to keep them engaged.
 
-## The Problem
+---
+
+#### Problem
+
+## No reason to come back
 
 Users arriving through a creator's link rarely installed a game. Even among those who did, engagement stayed low. Few revisited the creator's community page after installing.
 
 The community page had a leaderboard, but no real reason to interact. There was no sense of community activity or added value to keep players engaged.
 
-## How I Got There
+---
+
+#### Process
+
+## How I got there
 
 ### Understanding what creators needed
 
@@ -38,6 +53,27 @@ I drew from Xbox Retro classics, where replaying challenges cost internal points
 Players earn points by playing games. They spend points to enter challenges. Winners take the pot. Losers have a reason to play more games and earn back what they lost.
 
 The feature creates a cycle that drives installs without increasing spend.
+
+<details>
+<summary>Process: feature breakdown and wireframes</summary>
+
+![The engagement loop: earn, stake, win or lose, play more](/work/groups-and-duels/loop-diagram.png)
+
+![Feature breakdown: goals, core features, challenges and duels](/work/groups-and-duels/feature-breakdown.png)
+
+![User journeys and expected impact mapping](/work/groups-and-duels/user-journeys.png)
+
+![Wireframes for leaderboard, challenges, duels, and live hub tabs](/work/groups-and-duels/wireframes-tabs.png)
+
+![Annotated wireframes with detailed interaction notes](/work/groups-and-duels/annotated-wireframes.png)
+
+![Teams page wireframes: explore, create, and manage groups](/work/groups-and-duels/teams-wireframes.png)
+
+</details>
+
+---
+
+#### Solution
 
 ## What We Built
 
@@ -59,16 +95,38 @@ Public display of recent winners, creating social proof and motivation.
 
 Players can see their challenge history and total winnings.
 
+![Community page with competitions and challenge cards](/work/groups-and-duels/community.png)
+
+![Winners showcase with recent challenge results](/work/groups-and-duels/winners.png)
+
+![Earnings history showing missions completed and points earned](/work/groups-and-duels/earnings.png)
+
+---
+
+#### Results
+
 ## Impact
 
-- **+10-13%** increase in conversion
-- **+4%** returned to check community page
+<div class="takeaway-grid">
+<div class="takeaway-card">
+<span class="takeaway-num">+10-13%</span>
+Increase in game installs. More users installed and started playing after seeing challenges on the community page.
+</div>
+<div class="takeaway-card">
+<span class="takeaway-num">+4%</span>
+Return visits to community page. A positive early signal of retention through social competition.
+</div>
+</div>
 
-More users installed and started playing. A positive early signal of retention. We identified additional opportunities: more features and data needed to fully validate long-term retention.
+> "Now my viewers have a real reason to check my page -- they're playing more games and earning more points. This feature made my community active, not just present." -- Twitch Streamer promoting GrabTap
 
-> "Now my viewers have a real reason to check my page - they're playing more games and earning more points. This feature made my community active, not just present." - Twitch Streamer promoting GrabTap
+---
+
+#### Reflection
 
 ## What I Learned
 
 - **Friendly competition increases engagement and motivates players to participate more.** The stakes made it feel meaningful without costing us anything.
 - **Community challenges benefit both players and creators.** Players play more, creators get more support. A win-win that aligned incentives.
+
+![Illustration of two players competing head to head](/work/groups-and-duels/illustration.png)

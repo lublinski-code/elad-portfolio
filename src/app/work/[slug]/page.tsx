@@ -1,9 +1,5 @@
 import { notFound } from "next/navigation";
-import {
-  getAllWorkMeta,
-  getAllWorkSlugs,
-  getWorkBySlug,
-} from "@/lib/content";
+import { getAllWorkSlugs, getWorkBySlug, getAdjacentWork } from "@/lib/content";
 import WorkPage from "@/components/work/work-page";
 import WorkPageMeta from "@/components/work/work-page-meta";
 
@@ -21,19 +17,12 @@ export default async function Page({
   const work = await getWorkBySlug(slug);
   if (!work) notFound();
 
-  const all = await getAllWorkMeta();
-  const idx = all.findIndex((w) => w.slug === slug);
-  const prev = idx > 0 ? all[idx - 1] : null;
-  const next = idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null;
+  const adjacent = await getAdjacentWork(slug);
 
   return (
     <>
       <WorkPageMeta title={work.title} />
-      <WorkPage
-        work={work}
-        prev={prev ? { slug: prev.slug, title: prev.title } : null}
-        next={next ? { slug: next.slug, title: next.title } : null}
-      />
+      <WorkPage work={work} nextWork={adjacent.next} />
     </>
   );
 }

@@ -20,6 +20,8 @@ export default function ScrollRestore() {
       if (target) {
         target.scrollIntoView({ behavior: "instant", block: "start" });
       }
+      // Clear hash from URL so refresh doesn't re-scroll
+      history.replaceState(null, "", window.location.pathname);
       requestAnimationFrame(() => {
         document.documentElement.style.scrollBehavior = "";
       });

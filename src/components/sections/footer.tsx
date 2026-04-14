@@ -1,8 +1,10 @@
 export default function Footer() {
   return (
     <footer
+      className="px-[24px] md:px-0"
       style={{
         borderTop: "1px solid rgba(0,0,0,0.12)",
+        marginTop: "32px",
         paddingTop: "16px",
         paddingBottom: "48px",
       }}
@@ -11,7 +13,7 @@ export default function Footer() {
       <div className="flex flex-col gap-[8px] md:flex-row md:gap-[16px] md:items-start">
         <p
           className="font-mono font-medium text-[16px] leading-normal md:flex-1"
-          style={{ color: "rgba(0,0,0,0.7)" }}
+          style={{ color: "var(--cherry)" }}
         >
           --- Lublinski
         </p>

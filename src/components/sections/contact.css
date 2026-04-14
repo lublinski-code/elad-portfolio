@@ -1,33 +1,41 @@
-/* Contact button — bevel hover effect (same pattern as work cards) */
+/* Contact button — bevel lift with cream bevel, cherry icon on hover */
 
 .contact-btn {
   transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+.contact-btn-label {
+  color: white !important;
+}
+
+.contact-btn-icon {
+  color: white !important;
+  transition: color 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Hover: lift to reveal cream bevel, icon turns cherry */
 .contact-btn-wrapper:hover .contact-btn {
   transform: translate(6px, -6px);
 }
 
-/* Icon turns accent color on hover */
-.contact-btn-icon {
-  color: white;
-  transition: color 200ms cubic-bezier(0.32, 0.72, 0, 1);
+.contact-btn-wrapper:hover .contact-btn-icon {
+  color: var(--cherry) !important;
 }
 
-.contact-btn-wrapper:hover .contact-btn-icon,
-.contact-btn-wrapper:has(.contact-btn:focus-visible) .contact-btn-icon {
-  color: var(--cb-accent);
-}
-
-/* Focus-visible also triggers the bevel lift */
+/* Focus-visible mirrors hover */
 .contact-btn-wrapper:has(.contact-btn:focus-visible) .contact-btn {
   transform: translate(6px, -6px);
 }
 
+.contact-btn-wrapper:has(.contact-btn:focus-visible) .contact-btn-icon {
+  color: var(--cherry) !important;
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .contact-btn {
-    transition: none;
+  .contact-btn,
+  .contact-btn-icon {
+    transition: none !important;
   }
   .contact-btn-wrapper:hover .contact-btn,
   .contact-btn-wrapper:has(.contact-btn:focus-visible) .contact-btn {

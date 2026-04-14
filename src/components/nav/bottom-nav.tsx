@@ -9,20 +9,30 @@ export default function BottomNav() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  // Auto-center the active block
+  // Auto-scroll to center the active block (no user scrolling)
   useEffect(() => {
+    const scroller = scrollerRef.current;
     const block = blockRefs.current[activeId];
-    if (!block) return;
-    block.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
+    if (!scroller || !block) return;
+
+    const scrollerRect = scroller.getBoundingClientRect();
+    const blockRect = block.getBoundingClientRect();
+    const blockCenter = blockRect.left - scrollerRect.left + scroller.scrollLeft + blockRect.width / 2;
+    const targetScroll = blockCenter - scrollerRect.width / 2;
+
+    scroller.scrollTo({
+      left: targetScroll,
+      behavior: isTransitioning ? "instant" : "smooth",
     });
-  }, [activeId]);
+  }, [activeId, isTransitioning]);
 
   const handleClick = (id: string) => {
     if (isInnerPage) {
       window.location.href = `/#${id}`;
+      return;
+    }
+    if (id === "hi") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     setActiveId(id as typeof activeId);
@@ -37,27 +47,16 @@ export default function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-30 flex md:hidden"
       style={{ background: "var(--cream)" }}
     >
-      {/* 24px padding on the sides matches the mobile bleed from Figma.
-          The scrollable strip carries the colored pill cards. */}
       <div
         ref={scrollerRef}
-        className="no-scrollbar flex w-full gap-[8px] overflow-x-auto scroll-smooth px-[24px] py-[24px]"
-        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
+        className="no-scrollbar flex w-full gap-[8px] overflow-x-scroll px-[24px] py-[24px]"
+        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))", touchAction: "none", overscrollBehaviorX: "none" }}
+        onWheel={(e) => e.preventDefault()}
       >
-        {/* Identity pill — always first */}
-        <div
-          className="flex shrink-0 items-center rounded-[16px] bg-white px-[16px] py-[16px]"
-        >
-          <span
-            className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
-            style={{ color: "rgba(0,0,0,0.5)" }}
-          >
-            Lublinski
-          </span>
-        </div>
-
         {sections.map((s) => {
           const isActive = s.id === activeId;
+          const isHome = s.id === "hi";
+
           return (
             <button
               key={s.id}
@@ -69,8 +68,7 @@ export default function BottomNav() {
               aria-current={isActive ? "true" : undefined}
               className={`relative flex shrink-0 items-center overflow-hidden rounded-[16px] px-[16px] py-[16px] text-left${isTransitioning ? "" : " transition-[flex] duration-[220ms] ease-[cubic-bezier(0.32,0.72,0,1)]"}`}
               style={{
-                background: s.bg,
-                // Active section gets wider pill
+                background: isActive ? s.selectedBg : "var(--white)",
                 flex: isActive ? "2 0 auto" : "0 0 auto",
                 minWidth: isActive ? 140 : 80,
               }}
@@ -82,10 +80,7 @@ export default function BottomNav() {
                   className="pointer-events-none absolute left-0 top-0 h-[3px]"
                   style={{
                     width: "100%",
-                    background:
-                      s.id === "contact" || s.id === "hi"
-                        ? "rgba(0,0,0,0.85)"
-                        : "rgba(255,255,255,0.85)",
+                    background: "rgba(255,255,255,0.85)",
                     transform: `scaleX(${progress})`,
                     transformOrigin: "left",
                     transition: "transform 80ms linear",
@@ -95,10 +90,10 @@ export default function BottomNav() {
               <span
                 className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
                 style={{
-                  color: s.id === "contact" ? "var(--black)" : "var(--white)",
+                  color: isActive ? "var(--white)" : "var(--black)",
                 }}
               >
-                /{s.label}
+                {isHome ? s.label : `/${s.label}`}
               </span>
             </button>
           );
