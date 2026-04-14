@@ -160,7 +160,7 @@ export default function SideNav() {
     >
       <div
         className="no-scrollbar flex w-full flex-1 flex-col gap-[8px] overflow-y-auto"
-        style={{ padding: "24px 16px 24px 48px" }}
+        style={{ padding: "24px 16px 24px 24px" }}
       >
         {sections.map((s) => {
           const isActive = s.id === activeId;
