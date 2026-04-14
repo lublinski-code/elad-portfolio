@@ -38,7 +38,7 @@ export default function WorkPage({ work, nextWork }: Props) {
           p-0
           pb-[calc(72px+env(safe-area-inset-bottom))]
           md:pt-[24px] md:pr-[24px] md:pb-[16px] md:pl-[8px]
-          md:ml-[232px]
+          md:ml-[208px]
         "
       >
         <div className="flex flex-col gap-[8px] md:gap-[16px]">

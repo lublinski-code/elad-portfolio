@@ -156,7 +156,7 @@ export default function SideNav() {
     <nav
       aria-label="Sections"
       className={`fixed left-0 top-0 z-30 hidden h-dvh md:flex md:flex-col${isTransitioning ? " nav-no-transition" : ""}`}
-      style={{ width: 232 }}
+      style={{ width: 208 }}
     >
       <div
         className="no-scrollbar flex w-full flex-1 flex-col gap-[8px] overflow-y-auto"
