@@ -1,56 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 
+/**
+ * Fixed item width for inactive items (per Figma spec: 140px).
+ * Gap between items: 8px. Padding on each side: 24px.
+ */
+const ITEM_WIDTH = 140;
+const GAP = 8;
+const PAD = 24;
+
 export default function BottomNav() {
-  const { activeId, progress, setActiveId, isInnerPage, isTransitioning } = useActiveSection();
-  const stripRef = useRef<HTMLDivElement>(null);
-  const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const animRef = useRef<number | null>(null);
+  const { activeId, progress, setActiveId, isInnerPage, isTransitioning } =
+    useActiveSection();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [translateX, setTranslateX] = useState(0);
 
-  // Smoothly animate scrollLeft on an overflow-hidden container
-  const scrollToBlock = useCallback(
-    (instant: boolean) => {
-      const strip = stripRef.current;
-      const block = blockRefs.current[activeId];
-      if (!strip || !block) return;
+  // Calculate translateX so the active item is visible and roughly centered.
+  // Uses transform instead of scroll to completely bypass iOS touch scrolling.
+  const computeTranslate = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-      const stripLeft = strip.getBoundingClientRect().left;
-      const blockRect = block.getBoundingClientRect();
-      const blockCenter = blockRect.left - stripLeft + strip.scrollLeft + blockRect.width / 2;
-      const target = Math.max(0, blockCenter - strip.clientWidth / 2);
+    const viewportWidth = container.clientWidth;
+    const activeIndex = sections.findIndex((s) => s.id === activeId);
+    if (activeIndex < 0) return;
 
-      if (instant) {
-        strip.scrollLeft = target;
-        return;
-      }
+    // Total width of items before the active one
+    const offsetBefore = activeIndex * (ITEM_WIDTH + GAP);
 
-      // Lerp animation for smooth scroll on overflow-hidden
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-      const start = strip.scrollLeft;
-      const delta = target - start;
-      if (Math.abs(delta) < 1) return;
-      const duration = 250;
-      const t0 = performance.now();
+    // Center the active item in the viewport (accounting for container padding)
+    const activeCenter = PAD + offsetBefore + ITEM_WIDTH / 2;
+    const target = activeCenter - viewportWidth / 2;
 
-      const step = (now: number) => {
-        const elapsed = now - t0;
-        const p = Math.min(elapsed / duration, 1);
-        // ease-out cubic
-        const ease = 1 - Math.pow(1 - p, 3);
-        strip.scrollLeft = start + delta * ease;
-        if (p < 1) animRef.current = requestAnimationFrame(step);
-      };
-      animRef.current = requestAnimationFrame(step);
-    },
-    [activeId],
-  );
+    // Total strip width (all items at fixed width, plus gaps, plus padding)
+    const totalWidth =
+      PAD * 2 + sections.length * ITEM_WIDTH + (sections.length - 1) * GAP;
+    const maxTranslate = Math.max(0, totalWidth - viewportWidth);
+
+    setTranslateX(-Math.max(0, Math.min(target, maxTranslate)));
+  }, [activeId]);
 
   useEffect(() => {
-    scrollToBlock(isTransitioning);
-  }, [activeId, isTransitioning, scrollToBlock]);
+    computeTranslate();
+  }, [activeId, computeTranslate]);
+
+  // Recalculate on resize
+  useEffect(() => {
+    const onResize = () => computeTranslate();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [computeTranslate]);
 
   const handleClick = (id: string) => {
     if (isInnerPage) {
@@ -70,59 +72,74 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Sections"
-      className="fixed bottom-0 left-0 right-0 z-30 flex md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-30 md:hidden"
       style={{ background: "var(--cream)" }}
     >
+      {/* Outer clip container: no scroll mechanics at all */}
       <div
-        ref={stripRef}
-        className="flex w-full gap-[8px] overflow-hidden px-[24px] py-[24px]"
-        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
+        ref={containerRef}
+        className="w-full overflow-hidden"
+        style={{
+          paddingTop: 24,
+          paddingBottom: `calc(24px + env(safe-area-inset-bottom))`,
+        }}
       >
-        {sections.map((s) => {
-          const isActive = s.id === activeId;
-          const isHome = s.id === "hi";
+        {/* Inner strip: slides via transform, never scrolls */}
+        <div
+          className="flex"
+          style={{
+            gap: GAP,
+            paddingLeft: PAD,
+            paddingRight: PAD,
+            transform: `translateX(${translateX}px)`,
+            transition: isTransitioning
+              ? "none"
+              : "transform 250ms cubic-bezier(0.32, 0.72, 0, 1)",
+            willChange: "transform",
+          }}
+        >
+          {sections.map((s) => {
+            const isActive = s.id === activeId;
+            const isHome = s.id === "hi";
 
-          return (
-            <button
-              key={s.id}
-              ref={(el) => {
-                blockRefs.current[s.id] = el;
-              }}
-              type="button"
-              onClick={() => handleClick(s.id)}
-              aria-current={isActive ? "true" : undefined}
-              className={`relative flex shrink-0 items-center overflow-hidden rounded-[16px] px-[16px] py-[16px] text-left${isTransitioning ? "" : " transition-[flex] duration-[220ms] ease-[cubic-bezier(0.32,0.72,0,1)]"}`}
-              style={{
-                background: isActive ? s.selectedBg : "var(--white)",
-                flex: isActive ? "2 0 auto" : "0 0 auto",
-                minWidth: isActive ? 140 : 80,
-              }}
-            >
-              {/* Scroll progress fill on active block */}
-              {isActive && (
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute left-0 top-0 h-[3px]"
-                  style={{
-                    width: "100%",
-                    background: "rgba(255,255,255,0.85)",
-                    transform: `scaleX(${progress})`,
-                    transformOrigin: "left",
-                    transition: "transform 80ms linear",
-                  }}
-                />
-              )}
-              <span
-                className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => handleClick(s.id)}
+                aria-current={isActive ? "true" : undefined}
+                className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] px-[16px] py-[16px] text-left"
                 style={{
-                  color: isActive ? "var(--white)" : "var(--black)",
+                  width: ITEM_WIDTH,
+                  background: isActive ? s.selectedBg : "var(--white)",
                 }}
               >
-                {isHome ? s.label : `/${s.label}`}
-              </span>
-            </button>
-          );
-        })}
+                {/* Section scroll progress indicator on active block */}
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-0 top-0 h-[3px]"
+                    style={{
+                      width: "100%",
+                      background: "rgba(255,255,255,0.85)",
+                      transform: `scaleX(${progress})`,
+                      transformOrigin: "left",
+                      transition: "transform 80ms linear",
+                    }}
+                  />
+                )}
+                <span
+                  className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
+                  style={{
+                    color: isActive ? "var(--white)" : "var(--black)",
+                  }}
+                >
+                  {isHome ? s.label : `/${s.label}`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );
