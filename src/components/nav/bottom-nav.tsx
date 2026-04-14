@@ -1,30 +1,56 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 
 export default function BottomNav() {
   const { activeId, progress, setActiveId, isInnerPage, isTransitioning } = useActiveSection();
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const animRef = useRef<number | null>(null);
 
-  // Auto-scroll to center the active block (no user scrolling)
+  // Smoothly animate scrollLeft on an overflow-hidden container
+  const scrollToBlock = useCallback(
+    (instant: boolean) => {
+      const strip = stripRef.current;
+      const block = blockRefs.current[activeId];
+      if (!strip || !block) return;
+
+      const stripLeft = strip.getBoundingClientRect().left;
+      const blockRect = block.getBoundingClientRect();
+      const blockCenter = blockRect.left - stripLeft + strip.scrollLeft + blockRect.width / 2;
+      const target = Math.max(0, blockCenter - strip.clientWidth / 2);
+
+      if (instant) {
+        strip.scrollLeft = target;
+        return;
+      }
+
+      // Lerp animation for smooth scroll on overflow-hidden
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+      const start = strip.scrollLeft;
+      const delta = target - start;
+      if (Math.abs(delta) < 1) return;
+      const duration = 250;
+      const t0 = performance.now();
+
+      const step = (now: number) => {
+        const elapsed = now - t0;
+        const p = Math.min(elapsed / duration, 1);
+        // ease-out cubic
+        const ease = 1 - Math.pow(1 - p, 3);
+        strip.scrollLeft = start + delta * ease;
+        if (p < 1) animRef.current = requestAnimationFrame(step);
+      };
+      animRef.current = requestAnimationFrame(step);
+    },
+    [activeId],
+  );
+
   useEffect(() => {
-    const scroller = scrollerRef.current;
-    const block = blockRefs.current[activeId];
-    if (!scroller || !block) return;
-
-    const scrollerRect = scroller.getBoundingClientRect();
-    const blockRect = block.getBoundingClientRect();
-    const blockCenter = blockRect.left - scrollerRect.left + scroller.scrollLeft + blockRect.width / 2;
-    const targetScroll = blockCenter - scrollerRect.width / 2;
-
-    scroller.scrollTo({
-      left: targetScroll,
-      behavior: isTransitioning ? "instant" : "smooth",
-    });
-  }, [activeId, isTransitioning]);
+    scrollToBlock(isTransitioning);
+  }, [activeId, isTransitioning, scrollToBlock]);
 
   const handleClick = (id: string) => {
     if (isInnerPage) {
@@ -48,10 +74,9 @@ export default function BottomNav() {
       style={{ background: "var(--cream)" }}
     >
       <div
-        ref={scrollerRef}
-        className="no-scrollbar flex w-full gap-[8px] overflow-x-scroll px-[24px] py-[24px]"
-        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))", touchAction: "none", overscrollBehaviorX: "none" }}
-        onWheel={(e) => e.preventDefault()}
+        ref={stripRef}
+        className="flex w-full gap-[8px] overflow-hidden px-[24px] py-[24px]"
+        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
       >
         {sections.map((s) => {
           const isActive = s.id === activeId;
