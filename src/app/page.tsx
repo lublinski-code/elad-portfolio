@@ -16,7 +16,7 @@ export default function Home() {
           animate-[pageEnter_600ms_cubic-bezier(0.32,0.72,0,1)_both]
           p-0
           pb-[calc(72px+env(safe-area-inset-bottom))]
-          md:pt-[24px] md:pr-[24px] md:pb-[16px] md:pl-[8px]
+          md:pt-[24px] md:pr-[24px] md:pb-[16px] md:pl-[24px]
           md:ml-[232px]
         "
         style={{ background: "var(--cream)" }}
