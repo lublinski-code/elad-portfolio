@@ -110,14 +110,17 @@ body {
   font-size: clamp(48px, 9.7vw, 100vw);
 }
 
-/* Tight reset for buttons used as nav blocks */
-button {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
+/* Tight reset for buttons used as nav blocks — must be in @layer base
+   so Tailwind utility classes (in @layer utilities) can override. */
+@layer base {
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
 }
 
 /* Focus ring — visible on every section background.

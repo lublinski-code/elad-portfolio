@@ -92,7 +92,7 @@ export default function BottomNav() {
         }}
       >
         <div
-          className="flex"
+          className="flex w-max"
           style={{
             gap: GAP,
             paddingLeft: PAD,
@@ -115,9 +115,10 @@ export default function BottomNav() {
                 type="button"
                 onClick={() => handleClick(s.id)}
                 aria-current={isActive ? "true" : undefined}
-                className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] px-[16px] py-[16px] text-left"
+                className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] text-left"
                 style={{
                   width,
+                  padding: 16,
                   background: isActive ? s.selectedBg : "var(--white)",
                   transition: isTransitioning
                     ? "none"
