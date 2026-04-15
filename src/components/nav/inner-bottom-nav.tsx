@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useActiveSection } from "./active-section-context";
 
 const ACCENT_HEX: Record<string, string> = {
   grape: "#6b2ed6",
@@ -23,11 +24,25 @@ type Props = { items: WorkItem[] };
 
 export default function InnerBottomNav({ items }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { progress } = useActiveSection();
   const blockRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const activeSlug = pathname.startsWith("/work/")
     ? pathname.slice("/work/".length).split("/")[0]
     : null;
+
+  // Local selected state for click-to-expand animation
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Reset selected state on navigation
+  useEffect(() => {
+    setSelectedSlug(null);
+    return () => {
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, [pathname]);
 
   // Auto-scroll to center the active item
   useEffect(() => {
@@ -40,6 +55,16 @@ export default function InnerBottomNav({ items }: Props) {
       block: "nearest",
     });
   }, [activeSlug]);
+
+  const handleClick = (slug: string) => {
+    if (slug === activeSlug) return;
+    setSelectedSlug(slug);
+    // Prefetch then navigate quickly so the expand animation is visible
+    router.prefetch(`/work/${slug}`);
+    navTimerRef.current = setTimeout(() => {
+      router.push(`/work/${slug}`);
+    }, 100);
+  };
 
   return (
     <nav
@@ -75,33 +100,55 @@ export default function InnerBottomNav({ items }: Props) {
         {/* Project pills */}
         {items.map((item) => {
           const accentBg = ACCENT_HEX[item.bg] ?? "#6b2ed6";
-          const isActive = item.slug === activeSlug;
-          const isLight = isActive && LIGHT_ACCENTS.has(item.bg);
-          const textColor = isActive
+          const isActive = item.slug === activeSlug || item.slug === selectedSlug;
+          const isCollapsing =
+            item.slug === activeSlug &&
+            selectedSlug !== null &&
+            selectedSlug !== activeSlug;
+          const showExpanded = isActive && !isCollapsing;
+          const isLight = showExpanded && LIGHT_ACCENTS.has(item.bg);
+          const textColor = showExpanded
             ? isLight
               ? "#000000"
               : "#ffffff"
             : "var(--black)";
 
+          // Show progress bar only on the true active item (not the selected/animating one)
+          const showProgress = item.slug === activeSlug && !isCollapsing;
+
           return (
-            <a
+            <button
               key={item.slug}
-              href={`/work/${item.slug}`}
+              type="button"
               ref={(el) => {
                 blockRefs.current[item.slug] = el;
               }}
-              aria-current={isActive ? "page" : undefined}
+              onClick={() => handleClick(item.slug)}
+              aria-current={item.slug === activeSlug ? "page" : undefined}
               className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] text-left"
               style={{
-                width: isActive ? ACTIVE_WIDTH : INACTIVE_WIDTH,
+                width: showExpanded ? ACTIVE_WIDTH : INACTIVE_WIDTH,
                 padding: 16,
-                background: isActive ? accentBg : "var(--white)",
+                background: showExpanded ? accentBg : "var(--white)",
                 transition:
                   "width 250ms cubic-bezier(0.32, 0.72, 0, 1), background 250ms cubic-bezier(0.32, 0.72, 0, 1)",
               }}
             >
+              {showProgress && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute bottom-0 left-0 h-[3px]"
+                  style={{
+                    width: "100%",
+                    background: "rgba(255,255,255,0.85)",
+                    transform: `scaleX(${progress})`,
+                    transformOrigin: "left",
+                    transition: "transform 80ms linear",
+                  }}
+                />
+              )}
               <span
-                className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
+                className="block truncate font-mono text-[14px] font-normal leading-normal"
                 style={{
                   color: textColor,
                   transition: "color 200ms ease",
@@ -109,7 +156,7 @@ export default function InnerBottomNav({ items }: Props) {
               >
                 /{item.navLabel}
               </span>
-            </a>
+            </button>
           );
         })}
       </div>

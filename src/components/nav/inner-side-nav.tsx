@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useActiveSection } from "./active-section-context";
 import "./side-nav.css";
 
@@ -39,6 +39,7 @@ type Props = { items: WorkItem[] };
 
 export default function InnerSideNav({ items }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const { progress, isTransitioning } = useActiveSection();
 
   const progressRef = useRef(progress);
@@ -60,9 +61,10 @@ export default function InnerSideNav({ items }: Props) {
   const handleClick = (slug: string) => {
     if (slug === activeSlug) return;
     setSelectedSlug(slug);
+    router.prefetch(`/work/${slug}`);
     navTimerRef.current = setTimeout(() => {
-      window.location.href = `/work/${slug}`;
-    }, 300);
+      router.push(`/work/${slug}`);
+    }, 100);
   };
 
   // Smooth notch via lerp — same as main nav

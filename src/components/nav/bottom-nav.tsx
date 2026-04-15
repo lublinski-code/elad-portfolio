@@ -29,6 +29,7 @@ export default function BottomNav() {
       return;
     }
     if (id === "hi") {
+      setActiveId("hi");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -76,7 +77,7 @@ export default function BottomNav() {
               {isActive && (
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute left-0 top-0 h-[3px]"
+                  className="pointer-events-none absolute bottom-0 left-0 h-[3px]"
                   style={{
                     width: "100%",
                     background: "rgba(255,255,255,0.85)",
