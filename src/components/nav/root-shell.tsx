@@ -9,9 +9,11 @@ type Props = {
   children: React.ReactNode;
   /** Pre-rendered inner side nav (server component) — shown on /work/* pages */
   innerNav: React.ReactNode;
+  /** Pre-rendered inner bottom nav (server component) — shown on /work/* pages on mobile */
+  innerBottomNav: React.ReactNode;
 };
 
-export default function RootShell({ children, innerNav }: Props) {
+export default function RootShell({ children, innerNav, innerBottomNav }: Props) {
   const pathname = usePathname();
   const isInnerPage = pathname !== "/";
 
@@ -19,7 +21,7 @@ export default function RootShell({ children, innerNav }: Props) {
     <ActiveSectionProvider>
       {isInnerPage ? innerNav : <SideNav />}
       {children}
-      <BottomNav />
+      {isInnerPage ? innerBottomNav : <BottomNav />}
     </ActiveSectionProvider>
   );
 }

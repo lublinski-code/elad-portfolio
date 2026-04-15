@@ -1,64 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 
 const ACTIVE_WIDTH = 280;
 const INACTIVE_WIDTH = 142;
-const GAP = 8;
-const PAD = 24;
-
-function getItemWidth(index: number, activeIndex: number) {
-  return index === activeIndex ? ACTIVE_WIDTH : INACTIVE_WIDTH;
-}
-
-function getItemCenter(index: number, activeIndex: number) {
-  let x = PAD;
-  for (let i = 0; i < index; i++) {
-    x += getItemWidth(i, activeIndex) + GAP;
-  }
-  return x + getItemWidth(index, activeIndex) / 2;
-}
-
-function getTotalWidth(activeIndex: number) {
-  let w = PAD * 2 + (sections.length - 1) * GAP;
-  for (let i = 0; i < sections.length; i++) {
-    w += getItemWidth(i, activeIndex);
-  }
-  return w;
-}
 
 export default function BottomNav() {
   const { activeId, progress, setActiveId, isInnerPage, isTransitioning } =
     useActiveSection();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [tx, setTx] = useState(0);
+  const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const computeTranslate = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const vw = container.clientWidth;
-    const activeIndex = sections.findIndex((s) => s.id === activeId);
-    if (activeIndex < 0) return;
-
-    const center = getItemCenter(activeIndex, activeIndex);
-    const target = center - vw / 2;
-    const total = getTotalWidth(activeIndex);
-    const maxTx = Math.max(0, total - vw);
-
-    setTx(-Math.max(0, Math.min(target, maxTx)));
-  }, [activeId]);
-
+  // Auto-scroll to center the active item
   useEffect(() => {
-    computeTranslate();
-  }, [activeId, computeTranslate]);
-
-  useEffect(() => {
-    window.addEventListener("resize", computeTranslate);
-    return () => window.removeEventListener("resize", computeTranslate);
-  }, [computeTranslate]);
+    const block = blockRefs.current[activeId];
+    if (!block) return;
+    block.scrollIntoView({
+      behavior: isTransitioning ? "instant" : "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [activeId, isTransitioning]);
 
   const handleClick = (id: string) => {
     if (isInnerPage) {
@@ -84,73 +47,57 @@ export default function BottomNav() {
       style={{ background: "var(--cream)" }}
     >
       <div
-        ref={containerRef}
-        className="w-full overflow-hidden"
-        style={{
-          paddingTop: 24,
-          paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
-        }}
+        className="no-scrollbar flex w-full gap-[8px] overflow-x-auto px-[24px] py-[24px]"
+        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
       >
-        <div
-          className="flex w-max"
-          style={{
-            gap: GAP,
-            paddingLeft: PAD,
-            paddingRight: PAD,
-            transform: `translateX(${tx}px)`,
-            transition: isTransitioning
-              ? "none"
-              : "transform 250ms cubic-bezier(0.32, 0.72, 0, 1)",
-            willChange: "transform",
-          }}
-        >
-          {sections.map((s, i) => {
-            const isActive = i === activeIndex;
-            const isHome = s.id === "hi";
-            const width = isActive ? ACTIVE_WIDTH : INACTIVE_WIDTH;
+        {sections.map((s, i) => {
+          const isActive = i === activeIndex;
+          const isHome = s.id === "hi";
 
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => handleClick(s.id)}
-                aria-current={isActive ? "true" : undefined}
-                className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] text-left"
+          return (
+            <button
+              key={s.id}
+              ref={(el) => {
+                blockRefs.current[s.id] = el;
+              }}
+              type="button"
+              onClick={() => handleClick(s.id)}
+              aria-current={isActive ? "true" : undefined}
+              className="relative flex shrink-0 items-center overflow-hidden rounded-[16px] text-left"
+              style={{
+                width: isActive ? ACTIVE_WIDTH : INACTIVE_WIDTH,
+                padding: 16,
+                background: isActive ? s.selectedBg : "var(--white)",
+                transition: isTransitioning
+                  ? "none"
+                  : "width 250ms cubic-bezier(0.32, 0.72, 0, 1), background 250ms cubic-bezier(0.32, 0.72, 0, 1)",
+              }}
+            >
+              {isActive && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-0 top-0 h-[3px]"
+                  style={{
+                    width: "100%",
+                    background: "rgba(255,255,255,0.85)",
+                    transform: `scaleX(${progress})`,
+                    transformOrigin: "left",
+                    transition: "transform 80ms linear",
+                  }}
+                />
+              )}
+              <span
+                className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
                 style={{
-                  width,
-                  padding: 16,
-                  background: isActive ? s.selectedBg : "var(--white)",
-                  transition: isTransitioning
-                    ? "none"
-                    : "width 250ms cubic-bezier(0.32, 0.72, 0, 1), background 250ms cubic-bezier(0.32, 0.72, 0, 1)",
+                  color: isActive ? "var(--white)" : "var(--black)",
+                  transition: "color 200ms ease",
                 }}
               >
-                {isActive && (
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute left-0 top-0 h-[3px]"
-                    style={{
-                      width: "100%",
-                      background: "rgba(255,255,255,0.85)",
-                      transform: `scaleX(${progress})`,
-                      transformOrigin: "left",
-                      transition: "transform 80ms linear",
-                    }}
-                  />
-                )}
-                <span
-                  className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
-                  style={{
-                    color: isActive ? "var(--white)" : "var(--black)",
-                    transition: "color 200ms ease",
-                  }}
-                >
-                  {isHome ? `--- ${s.label}` : `/${s.label}`}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                {isHome ? `--- ${s.label}` : `/${s.label}`}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );
