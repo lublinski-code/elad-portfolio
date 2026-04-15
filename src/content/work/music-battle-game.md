@@ -24,6 +24,23 @@ Music guessing games exist. Fighting games exist. SoundClash puts them together.
 
 The concept came out of a brainstorming session with a CPO agent I built, an AI thought partner tuned to challenge my product assumptions. We shaped it into a proper PRD before a single line of code was written.
 
+<div class="ext-links">
+<div class="external-link-wrapper" style="--ext-accent: #54e100; position: relative; display: inline-block;">
+<div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
+<a href="https://soundclash-vert.vercel.app/" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
+<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">Play SoundClash</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</a>
+</div>
+<div class="external-link-wrapper" style="--ext-accent: #54e100; position: relative; display: inline-block;">
+<div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
+<a href="https://github.com/lublinski-code/soundclash" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
+<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">GitHub Repository</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</a>
+</div>
+</div>
+
 ![SoundClash home screen](/work/music-battle-game/home.png)
 
 ---
@@ -38,7 +55,22 @@ This project was as much about how I build as what I built. I wanted to see how 
 
 **Design before code.** Vibe-designing did not work. I needed control over the output. So I designed properly in Figma: colors, typography, layouts, component attributes, and an improved player flow. Then I connected the Figma MCP server, created design tokens for the project, and pushed the design directly into the build. The game looks the way I intended it to look.
 
+<div class="ext-links">
+<div class="external-link-wrapper" style="--ext-accent: #54e100; position: relative; display: inline-block;">
+<div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
+<a href="https://www.figma.com/design/B7WrtADuyLgyAm530sijOH/SoundClash-Design?node-id=72-239&t=NvE8xxfRJLUPeG7f-1" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
+<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">Figma Design File</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</a>
+</div>
+</div>
+
+<details>
+<summary>First draft without designing in Figma</summary>
+
 ![First draft without designing in Figma](/work/music-battle-game/no-ui-design.png)
+
+</details>
 
 **Phased builds for better control.** Rather than building everything at once, I sliced the project into phases to maintain context, reduce risk, and keep output quality high throughout.
 
@@ -62,6 +94,13 @@ I migrated to Deezer's API. It offers 30-second previews and a wide catalog, and
 
 **The song pool fetch was the hardest engineering problem.** Filtering songs by genre, era, and market in a way that felt right for the game and stayed consistent took more iterations than anything else in the project. It is still the most refined part of the codebase.
 
+<details>
+<summary>Battle settings UI</summary>
+
+![Battle settings with genre, era, and HP configuration](/work/music-battle-game/battle-settings.png)
+
+</details>
+
 **Performance was a product decision.** Players hit Start Battle and expect the game to begin immediately, not wait 20 to 30 seconds while songs fetch. So I rearchitected the sequence: the first song loads on Start, the game begins, and the rest of the pool fetches in the background. Players never feel the wait.
 
 ![Progressive song pool loading](/work/music-battle-game/optimization-for-game-start.png)
@@ -79,7 +118,7 @@ I migrated to Deezer's API. It offers 30-second previews and a wide catalog, and
 - Album reveal and full-song links across platforms after each round
 - Deployed on Vercel, no login or subscription required
 
-**Stack:** Next.js 16 · React 19 · TypeScript · Zustand · Framer Motion · Tailwind CSS v4 · Deezer API
+**Stack:** `Next.js 16` `React 19` `TypeScript` `Zustand` `Framer Motion` `Tailwind CSS v4` `Deezer API`
 
 ![Round 1 with autocomplete search](/work/music-battle-game/turn-w-input.png)
 

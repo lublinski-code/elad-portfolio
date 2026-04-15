@@ -170,6 +170,12 @@ Rules are always-on foundation. Skills are context-loaded execution. They solve 
 </div>
 </div>
 
+---
+
+#### Looking Ahead
+
+## This is an evolving system
+
 This is an evolving system, not a finished one. The agents will get better as the skills are refined and the ruleset is stress-tested on real projects. What this session proved is that the architecture is sound, and that **treating AI collaboration as a system design problem is worth the effort**.
 
 ![Full system architecture](/work/ai-team-claude-code/structure.png)

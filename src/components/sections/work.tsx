@@ -69,8 +69,7 @@ export default async function Work() {
       <div className="px-[24px] py-[24px] md:px-[48px] md:py-[48px]">
         <div className="external-link-wrapper relative inline-block">
           <div
-            className="absolute inset-0 rounded-[16px]"
-            style={{ background: "var(--cherry)" }}
+            className="external-link-bevel absolute inset-0 rounded-[16px]"
             aria-hidden="true"
           />
           <a
