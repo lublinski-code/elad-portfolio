@@ -1,4 +1,6 @@
 import type { WorkMeta } from "@/lib/content";
+import { workAccentVivid, type WorkAccent } from "@/lib/content";
+import ExternalLinkButton from "./external-link-button";
 
 type Props = {
   bodyHtml: string;
@@ -37,13 +39,56 @@ function processImages(html: string): string {
   return result;
 }
 
-export default function WorkBodyLayout({ bodyHtml, pastel }: Props) {
+/** Split HTML after the first </p> so we can inject React components between paragraphs */
+function splitAfterFirstParagraph(html: string): [string, string] | null {
+  const idx = html.indexOf("</p>");
+  if (idx === -1) return null;
+  const splitAt = idx + 4; // length of "</p>"
+  return [html.slice(0, splitAt), html.slice(splitAt)];
+}
+
+const bodyStyle = (pastel: string) =>
+  ({ color: "rgba(0,0,0,0.7)", "--callout-bg": pastel }) as React.CSSProperties;
+
+export default function WorkBodyLayout({ bodyHtml, work, pastel }: Props) {
   const sections = splitSections(bodyHtml);
+  const accent = workAccentVivid(work.bg as WorkAccent);
+  const links = work.links;
 
   return (
     <>
       {sections.map((rawHtml, idx) => {
         const html = processImages(rawHtml);
+        const hasLinks = idx === 0 && links && links.length > 0;
+        const split = hasLinks ? splitAfterFirstParagraph(html) : null;
+
+        if (split) {
+          const [before, after] = split;
+          return (
+            <div
+              key={idx}
+              className="rounded-[24px] p-[24px] md:p-[48px]"
+              style={{ background: "var(--cream)" }}
+            >
+              <div
+                className="work-body"
+                style={bodyStyle(pastel)}
+                dangerouslySetInnerHTML={{ __html: before }}
+              />
+              <div className="flex flex-wrap gap-[16px]" style={{ marginTop: 24, marginBottom: 24, maxWidth: 640 }}>
+                {links!.map((link) => (
+                  <ExternalLinkButton key={link.href} link={link} accent={accent} />
+                ))}
+              </div>
+              <div
+                className="work-body"
+                style={bodyStyle(pastel)}
+                dangerouslySetInnerHTML={{ __html: after }}
+              />
+            </div>
+          );
+        }
+
         return (
           <div
             key={idx}
@@ -52,10 +97,7 @@ export default function WorkBodyLayout({ bodyHtml, pastel }: Props) {
           >
             <div
               className="work-body"
-              style={{
-                color: "rgba(0,0,0,0.7)",
-                "--callout-bg": pastel,
-              } as React.CSSProperties}
+              style={bodyStyle(pastel)}
               dangerouslySetInnerHTML={{ __html: html }}
             />
           </div>

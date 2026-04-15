@@ -242,21 +242,21 @@ body {
   margin: 0;
 }
 
-/* Paragraph-to-paragraph: needs more air than the default 16px sibling gap */
+/* Paragraph-to-paragraph: visible break, not disconnected */
 .work-body p + p {
-  margin-top: 32px !important;
+  margin-top: 24px !important;
 }
 
-/* Paragraph into a list: same 24px — the list is a continuation of the thought */
+/* Paragraph into a list: continuation of the thought */
 .work-body p + ul,
 .work-body p + ol {
   margin-top: 16px !important;
 }
 
-/* List back into a paragraph: treat as a new thought, give it room */
+/* List back into a paragraph: new thought, matches p+p */
 .work-body ul + p,
 .work-body ol + p {
-  margin-top: 32px !important;
+  margin-top: 24px !important;
 }
 
 /* Bold text */
@@ -479,6 +479,16 @@ body {
   padding-bottom: 16px;
 }
 
+/* Rich-block → prose transitions: 24px after details/ext-links/figure */
+.work-body details + *,
+.work-body details + p,
+.work-body details + ul,
+.work-body details + ol,
+.work-body details + h2,
+.work-body details + h3 {
+  margin-top: 24px !important;
+}
+
 .work-body details summary {
   cursor: pointer;
   padding: 16px;
@@ -558,12 +568,26 @@ body {
 .external-link-wrapper:hover .external-link-icon {
   color: var(--ext-accent);
 }
+/* Secondary variant hover: icon turns accent color.
+   Wrapped in @layer base so Tailwind doesn't tree-shake it
+   (the class only appears in markdown HTML, not in JSX). */
+@layer base {
+  .ext-secondary:hover .external-link-icon {
+    color: var(--ext-accent) !important;
+  }
+}
+
 /* External links inside work-body (from markdown HTML) */
 .work-body .ext-links {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
   margin-top: 24px;
+}
+
+/* Rich-block → prose/rich-block after ext-links */
+.work-body .ext-links + * {
+  margin-top: 24px !important;
 }
 @media (prefers-reduced-motion: reduce) {
   .external-link {

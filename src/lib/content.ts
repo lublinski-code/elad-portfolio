@@ -65,6 +65,13 @@ export const workAccentPastel = (accent: WorkAccent): string =>
 
 export type WorkCategory = "Case Study" | "Side Project" | "Personal";
 
+export type WorkLink = {
+  label: string;
+  href: string;
+  icon?: string;
+  variant?: "primary" | "secondary";
+};
+
 export type WorkMeta = {
   slug: string;
   title: string;
@@ -80,6 +87,7 @@ export type WorkMeta = {
   fg: "black" | "white";
   order: number;
   published: boolean;
+  links?: WorkLink[];
 };
 
 export type Work = WorkMeta & {
@@ -111,6 +119,7 @@ function parseMeta(slug: string, data: Record<string, unknown>): WorkMeta {
     fg: (data.fg as "black" | "white") ?? "black",
     order: Number(data.order ?? 999),
     published: data.published !== false,
+    links: Array.isArray(data.links) ? (data.links as WorkLink[]) : undefined,
   };
 }
 

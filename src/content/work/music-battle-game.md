@@ -12,6 +12,13 @@ bg: lemon
 fg: black
 order: 2
 published: true
+links:
+  - label: Play SoundClash
+    href: https://soundclash-vert.vercel.app/
+    icon: gamepad-2
+  - label: GitHub Repository
+    href: https://github.com/lublinski-code/soundclash
+    variant: secondary
 ---
 
 #### The Idea
@@ -23,23 +30,6 @@ A music guessing game with arcade fighting mechanics, built independently from i
 Music guessing games exist. Fighting games exist. SoundClash puts them together. Players take turns listening to song snippets and race to identify the track. The faster you guess, the more damage you deal to your opponent's HP. Choose your genres, your era, your teams, and battle.
 
 The concept came out of a brainstorming session with a CPO agent I built, an AI thought partner tuned to challenge my product assumptions. We shaped it into a proper PRD before a single line of code was written.
-
-<div class="ext-links">
-<div class="external-link-wrapper" style="--ext-accent: #54e100; position: relative; display: inline-block;">
-<div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
-<a href="https://soundclash-vert.vercel.app/" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
-<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">Play SoundClash</span>
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</a>
-</div>
-<div class="external-link-wrapper" style="--ext-accent: #54e100; position: relative; display: inline-block;">
-<div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
-<a href="https://github.com/lublinski-code/soundclash" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
-<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">GitHub Repository</span>
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</a>
-</div>
-</div>
 
 ![SoundClash home screen](/work/music-battle-game/home.png)
 
@@ -60,7 +50,7 @@ This project was as much about how I build as what I built. I wanted to see how 
 <div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
 <a href="https://www.figma.com/design/B7WrtADuyLgyAm530sijOH/SoundClash-Design?node-id=72-239&t=NvE8xxfRJLUPeG7f-1" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
 <span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">Figma Design File</span>
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 7h10v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 17 17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </a>
 </div>
 </div>
@@ -86,6 +76,13 @@ This project was as much about how I build as what I built. I wanted to see how 
 
 **Spotify locked me out.** I built the first version on Spotify's API, full song playback, auth, the works. Their developer tier limits test apps to 5 users, and midway through, a policy change severed my access to their song quota entirely. Zero songs returned, no matter what I tried.
 
+<details>
+<summary>Zero songs returned</summary>
+
+![Battle settings with genre, era, and HP configuration](/work/music-battle-game/battle-settings.png)
+
+</details>
+
 I migrated to Deezer's API. It offers 30-second previews and a wide catalog, and the tradeoff was manageable. To compensate for sending players to a less familiar platform, I added multi-platform links. After each round, players can open the full track on Spotify, Apple Music, YouTube, or wherever they prefer.
 
 ![Spotify to Deezer architecture migration](/work/music-battle-game/deezer-migration.png)
@@ -93,13 +90,6 @@ I migrated to Deezer's API. It offers 30-second previews and a wide catalog, and
 ![Multi-platform song links after each round](/work/music-battle-game/full-song-selector.png)
 
 **The song pool fetch was the hardest engineering problem.** Filtering songs by genre, era, and market in a way that felt right for the game and stayed consistent took more iterations than anything else in the project. It is still the most refined part of the codebase.
-
-<details>
-<summary>Battle settings UI</summary>
-
-![Battle settings with genre, era, and HP configuration](/work/music-battle-game/battle-settings.png)
-
-</details>
 
 **Performance was a product decision.** Players hit Start Battle and expect the game to begin immediately, not wait 20 to 30 seconds while songs fetch. So I rearchitected the sequence: the first song loads on Start, the game begins, and the rest of the pool fetches in the background. Players never feel the wait.
 
