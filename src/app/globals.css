@@ -216,7 +216,23 @@ body {
 }
 .work-body table + p,
 .work-body .table-wrapper + p {
-  margin-top: 16px !important;
+  margin-top: 24px !important;
+}
+
+/* Takeaway grid ↔ prose transitions */
+.work-body .takeaway-grid + * {
+  margin-top: 24px !important;
+}
+.work-body * + .takeaway-grid {
+  margin-top: 24px !important;
+}
+
+/* Blockquote ↔ prose transitions */
+.work-body blockquote + * {
+  margin-top: 24px !important;
+}
+.work-body * + blockquote {
+  margin-top: 24px !important;
 }
 
 /* Inline code inside headings: tag treatment matching work card tags */
@@ -274,11 +290,25 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+.work-body ul {
+  list-style-type: disc;
+}
+.work-body ol {
+  list-style-type: decimal;
+}
 .work-body li {
   line-height: 1.5;
+  padding-left: 8px;
 }
 .work-body li::marker {
   color: rgba(0, 0, 0, 0.35);
+}
+/* Loose-list: remark wraps li content in <p>; reset margins so gap stays 8px */
+.work-body li p {
+  margin: 0 !important;
+}
+.work-body li p + p {
+  margin-top: 8px !important;
 }
 
 /* Inline code — uses pastel accent as tag-style background */

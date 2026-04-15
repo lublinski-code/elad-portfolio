@@ -46,11 +46,11 @@ This project was as much about how I build as what I built. I wanted to see how 
 **Design before code.** Vibe-designing did not work. I needed control over the output. So I designed properly in Figma: colors, typography, layouts, component attributes, and an improved player flow. Then I connected the Figma MCP server, created design tokens for the project, and pushed the design directly into the build. The game looks the way I intended it to look.
 
 <div class="ext-links">
-<div class="external-link-wrapper" style="--ext-accent: #54e100; position: relative; display: inline-block;">
+<div class="external-link-wrapper ext-secondary" style="--ext-accent: #54e100; position: relative; display: inline-block;">
 <div class="external-link-bevel" style="position: absolute; inset: 0; border-radius: 16px;"></div>
-<a href="https://www.figma.com/design/B7WrtADuyLgyAm530sijOH/SoundClash-Design?node-id=72-239&t=NvE8xxfRJLUPeG7f-1" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none;">
-<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(255,255,255,0.9);">Figma Design File</span>
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="external-link-icon"><path d="M7 7h10v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 17 17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<a href="https://www.figma.com/design/B7WrtADuyLgyAm530sijOH/SoundClash-Design?node-id=72-239&t=NvE8xxfRJLUPeG7f-1" target="_blank" rel="noopener noreferrer" class="external-link" style="position: relative; display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 16px 24px; text-decoration: none; background: #ffffff !important;">
+<span style="font-family: var(--font-jetbrains-mono), monospace; font-size: 16px; color: rgba(0,0,0,0.7);">Figma Design File</span>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="external-link-icon" style="color: rgba(0,0,0,0.35);"><path d="M7 7h10v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 17 17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </a>
 </div>
 </div>
