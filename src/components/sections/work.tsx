@@ -71,13 +71,3 @@ export default async function Work() {
   );
 }
 
-/** Full-width cream 1px divider */
-function WorkDivider() {
-  return (
-    <div
-      aria-hidden="true"
-      className="h-px w-full shrink-0"
-      style={{ background: "rgba(255,255,255,0.2)" }}
-    />
-  );
-}

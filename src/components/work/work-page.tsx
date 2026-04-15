@@ -15,8 +15,8 @@ const LIGHT_ACCENTS = new Set(["lemon", "sunflower", "mint", "candy"]);
 const LINE_HEIGHT = 1.15;
 
 export default function WorkPage({ work, nextWork }: Props) {
-  const accent = workAccentVivid(work.bg as WorkAccent);
-  const pastel = workAccentPastel(work.bg as WorkAccent);
+  const accent = workAccentVivid(work.bg as WorkAccent) ?? "#6b2ed6";
+  const pastel = workAccentPastel(work.bg as WorkAccent) ?? "#dfd2f6";
   const isLight = LIGHT_ACCENTS.has(work.bg);
   const accentFg = isLight ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)";
   const accentMute = isLight ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)";

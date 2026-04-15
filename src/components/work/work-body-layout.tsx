@@ -31,6 +31,11 @@ function processImages(html: string): string {
       return `<figure><img ${before}alt="${alt}"${after}><figcaption class="img-caption">${alt}</figcaption></figure>`;
     },
   );
+  // Strip auto-generated figcaption when a manual <p class="img-caption"> follows
+  result = result.replace(
+    /<figcaption class="img-caption">[^<]*<\/figcaption><\/figure>\s*\n?\s*<p class="img-caption">/g,
+    `</figure>\n<p class="img-caption">`,
+  );
   // Wrap remaining bare <img> (no alt or empty alt) in <figure> without caption
   result = result.replace(
     /(?<!<figure>)(<img\s+(?![^>]*alt=")[^>]*>)/g,
@@ -52,7 +57,7 @@ const bodyStyle = (pastel: string) =>
 
 export default function WorkBodyLayout({ bodyHtml, work, pastel }: Props) {
   const sections = splitSections(bodyHtml);
-  const accent = workAccentVivid(work.bg as WorkAccent);
+  const accent = workAccentVivid(work.bg as WorkAccent) ?? "#6b2ed6";
   const links = work.links;
 
   return (
