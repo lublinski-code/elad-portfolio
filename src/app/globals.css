@@ -520,3 +520,27 @@ body {
   margin: 32px 0;
 }
 
+/* External link button — cherry bevel */
+.external-link {
+  background: var(--coal);
+  transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.external-link-wrapper:hover .external-link {
+  transform: translate(8px, -8px);
+}
+.external-link-icon {
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.external-link-wrapper:hover .external-link-icon {
+  color: var(--cherry);
+}
+@media (prefers-reduced-motion: reduce) {
+  .external-link {
+    transition: none;
+  }
+  .external-link-wrapper:hover .external-link {
+    transform: none;
+  }
+}
+
