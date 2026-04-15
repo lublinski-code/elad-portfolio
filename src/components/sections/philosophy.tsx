@@ -32,7 +32,7 @@ export default function Philosophy() {
     >
       {/* Header card */}
       <div
-        className="flex flex-col items-start justify-end rounded-none md:rounded-[24px] p-[24px] md:p-[48px]"
+        className="flex flex-col items-start justify-end rounded-[24px] p-[24px] md:p-[48px]"
         style={{
           background: "var(--grape)",
           minHeight: "clamp(280px, 36vw, 520px)",
@@ -48,7 +48,7 @@ export default function Philosophy() {
 
       {/* Content card */}
       <div
-        className="flex flex-col rounded-none md:rounded-[24px]"
+        className="flex flex-col rounded-[24px]"
         style={{
           background: "var(--cream)",
           border: "1px solid rgba(0,0,0,0.5)",

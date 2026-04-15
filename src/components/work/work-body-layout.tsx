@@ -47,7 +47,7 @@ export default function WorkBodyLayout({ bodyHtml, pastel }: Props) {
         return (
           <div
             key={idx}
-            className="rounded-none md:rounded-[24px] p-[24px] md:p-[48px]"
+            className="rounded-[24px] p-[24px] md:p-[48px]"
             style={{ background: "var(--cream)" }}
           >
             <div

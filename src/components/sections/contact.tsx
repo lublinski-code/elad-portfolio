@@ -62,7 +62,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="flex flex-col overflow-hidden rounded-none md:rounded-[24px]"
+      className="flex flex-col overflow-hidden rounded-[24px]"
       style={{ background: "var(--cherry)" }}
     >
       {/* Header */}

@@ -15,7 +15,7 @@ export default function SectionShell({ section, className = "", children }: Prop
   return (
     <section
       id={section.id}
-      className={`relative w-full overflow-hidden rounded-none md:rounded-[24px] ${className}`}
+      className={`relative w-full overflow-hidden rounded-[24px] ${className}`}
       style={{ background: section.selectedBg }}
     >
       {children}

@@ -35,7 +35,7 @@ export default function WorkPage({ work, nextWork }: Props) {
 
       <main
         className="
-          p-0
+          p-[8px]
           pb-[calc(72px+env(safe-area-inset-bottom))]
           md:pt-[24px] md:pr-[24px] md:pb-[16px] md:pl-[8px]
           md:ml-[208px]
@@ -45,7 +45,7 @@ export default function WorkPage({ work, nextWork }: Props) {
           {/* Hero card */}
           <div
             id="work-hero"
-            className="rounded-none md:rounded-[24px]"
+            className="rounded-[24px]"
             style={{ background: accent }}
           >
             <div className="flex flex-col gap-[16px] py-[24px] md:py-[48px]">
