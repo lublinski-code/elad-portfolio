@@ -12,6 +12,9 @@ bg: lime
 fg: black
 order: 5
 published: true
+goal: "Boost **conversion** and motivate players to install and play games by introducing a group-based challenge and duel system"
+secondaryGoal: "Increase **retention** by helping players return through social competition and rewards"
+businessGoal: "A performance-based sponsorship platform that connects advertisers with high-intent audiences through community-driven play and rewards. Powered by an event-driven revenue model."
 ---
 
 #### Context

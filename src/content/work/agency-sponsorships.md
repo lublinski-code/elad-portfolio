@@ -12,6 +12,8 @@ bg: sky
 fg: black
 order: 3
 published: true
+goal: "Boost user **conversion** with a scalable solution for creators with agents"
+businessGoal: "A performance-based sponsorship marketplace linking gaming and service advertisers with creators' audiences, built on an event-driven revenue model."
 ---
 
 #### Context

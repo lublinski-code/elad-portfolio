@@ -12,6 +12,9 @@ bg: sunflower
 fg: black
 order: 4
 published: true
+goal: "Boost engagement, improve **retention**, and increase **LTV** through reward-driven player motivation."
+secondaryGoal: "Scale user **conversion** and sponsorships product **growth**"
+businessGoal: "A performance-based sponsorship platform that connects advertisers with high-intent audiences through community-driven play and rewards. Powered by an event-driven revenue model."
 ---
 
 #### Context

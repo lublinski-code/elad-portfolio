@@ -12,6 +12,9 @@ bg: candy
 fg: black
 order: 7
 published: true
+goal: "Boost user **conversion** with a focused and simplified landing page"
+secondaryGoal: "Convert users to login with **Twitch**"
+businessGoal: "A performance-based sponsorship marketplace linking gaming and service advertisers with creators' audiences, built on an event-driven revenue model."
 ---
 
 #### Context

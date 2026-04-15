@@ -12,6 +12,8 @@ bg: mint
 fg: black
 order: 6
 published: true
+goal: "Boost player **retention** through a smart notification & live ops system"
+businessGoal: "A performance-based sponsorship platform that connects advertisers with high-intent audiences through community-driven play and rewards. Powered by an event-driven revenue model."
 ---
 
 #### Context

@@ -88,6 +88,9 @@ export type WorkMeta = {
   order: number;
   published: boolean;
   links?: WorkLink[];
+  goal?: string;
+  secondaryGoal?: string;
+  businessGoal?: string;
 };
 
 export type Work = WorkMeta & {
@@ -120,6 +123,9 @@ function parseMeta(slug: string, data: Record<string, unknown>): WorkMeta {
     order: Number(data.order ?? 999),
     published: data.published !== false,
     links: Array.isArray(data.links) ? (data.links as WorkLink[]) : undefined,
+    goal: data.goal ? String(data.goal) : undefined,
+    secondaryGoal: data.secondaryGoal ? String(data.secondaryGoal) : undefined,
+    businessGoal: data.businessGoal ? String(data.businessGoal) : undefined,
   };
 }
 
