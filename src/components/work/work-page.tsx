@@ -19,7 +19,6 @@ export default function WorkPage({ work, nextWork }: Props) {
   const pastel = workAccentPastel(work.bg as WorkAccent) ?? "#dfd2f6";
   const isLight = LIGHT_ACCENTS.has(work.bg);
   const accentFg = isLight ? "rgba(0,0,0,0.9)" : "rgba(255,255,255,0.9)";
-  const accentMute = isLight ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.7)";
   const dividerColor = isLight ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.2)";
   const tagSolidBg = isLight ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.9)";
   const tagSolidFg = isLight ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.9)";

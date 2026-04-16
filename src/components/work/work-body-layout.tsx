@@ -56,7 +56,7 @@ function splitAfterFirstParagraph(html: string): [string, string] | null {
 const bodyStyle = (pastel: string) =>
   ({ color: "rgba(0,0,0,0.7)", "--callout-bg": pastel }) as React.CSSProperties;
 
-function GoalHighlight({ goal, secondaryGoal, businessGoal, pastel }: { goal?: string; secondaryGoal?: string; businessGoal?: string; pastel: string }) {
+function GoalHighlight({ goal, secondaryGoal, businessGoal }: { goal?: string; secondaryGoal?: string; businessGoal?: string }) {
   if (!goal && !secondaryGoal && !businessGoal) return null;
 
   const renderText = (text: string) =>
@@ -131,7 +131,7 @@ export default function WorkBodyLayout({ bodyHtml, work, pastel }: Props) {
                 />
               </div>
               {idx === 0 && hasGoals && (
-                <GoalHighlight goal={work.goal} secondaryGoal={work.secondaryGoal} businessGoal={work.businessGoal} pastel={pastel} />
+                <GoalHighlight goal={work.goal} secondaryGoal={work.secondaryGoal} businessGoal={work.businessGoal} />
               )}
             </React.Fragment>
           );
@@ -150,7 +150,7 @@ export default function WorkBodyLayout({ bodyHtml, work, pastel }: Props) {
               />
             </div>
             {idx === 0 && hasGoals && (
-              <GoalHighlight goal={work.goal} secondaryGoal={work.secondaryGoal} businessGoal={work.businessGoal} pastel={pastel} />
+              <GoalHighlight goal={work.goal} secondaryGoal={work.secondaryGoal} businessGoal={work.businessGoal} />
             )}
           </React.Fragment>
         );

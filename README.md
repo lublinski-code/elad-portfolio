@@ -1,5 +1,7 @@
 # Elad Lublinski — Portfolio
 
+**Built and owned by Elad Lublinski.** This repo is public for reference and learning, not for forking. If you like a pattern here, take inspiration and write your own. Don't clone the portfolio itself. See [LICENSE](./LICENSE).
+
 A personal portfolio for a product designer who works at the intersection of design, AI, and product development.
 
 One of the seven case studies inside this portfolio documents how I built an AI development team inside Claude Code: 15 specialized agents, 19 skill libraries, a global ruleset, organized by altitude from strategy down to QA.

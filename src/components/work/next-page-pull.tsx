@@ -10,7 +10,6 @@ type Props = {
 
 const THRESHOLD = 280;
 const DECAY_RATE = 0.88;
-const DECAY_INTERVAL = 16; // ~60fps
 
 export default function NextPagePull({
   nextSlug,
