@@ -3,6 +3,7 @@ import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import RootShell from "@/components/nav/root-shell";
 import InnerSideNavServer from "@/components/nav/inner-side-nav-server";
 import InnerBottomNavServer from "@/components/nav/inner-bottom-nav-server";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html lang="en" className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}>
       <body className="min-h-screen">
         <RootShell innerNav={<InnerSideNavServer />} innerBottomNav={<InnerBottomNavServer />}>{children}</RootShell>
+        <Analytics />
       </body>
     </html>
   );
