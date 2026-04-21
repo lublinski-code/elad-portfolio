@@ -167,6 +167,59 @@ export default function TetrisGame() {
     setState("dead");
   }, []);
 
+  const animateClear = useCallback(
+    (rows: number[], onDone: () => void) => {
+      const bc = boardCanvasRef.current;
+      if (!bc) { onDone(); return; }
+      const bx = bc.getContext("2d");
+      if (!bx) { onDone(); return; }
+      if (!colorsRef.current) colorsRef.current = readColors();
+
+      // Pause game loop during animation
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+
+      const start = performance.now();
+      const PHASE_MS = [80, 60, 80, 60]; // flash-white, color, flash-white, fade
+      const TOTAL = PHASE_MS.reduce((a, b) => a + b, 0); // 280ms
+
+      const drawFlashRow = (r: number, fill: string, alpha: number) => {
+        bx.globalAlpha = alpha;
+        bx.fillStyle = fill;
+        for (let c = 0; c < COLS; c++) {
+          bx.beginPath();
+          bx.roundRect(c * CS + 1, r * CS + 1, CS - 2, CS - 2, 3);
+          bx.fill();
+        }
+        bx.globalAlpha = 1;
+      };
+
+      const frame = (now: number) => {
+        const elapsed = now - start;
+        drawAll(); // redraw base each frame so overlay is on top of current state
+
+        if (elapsed < PHASE_MS[0]) {
+          rows.forEach((r) => drawFlashRow(r, "#ffffff", 1));
+        } else if (elapsed < PHASE_MS[0] + PHASE_MS[1]) {
+          // brief return to piece color (already drawn by drawAll)
+        } else if (elapsed < PHASE_MS[0] + PHASE_MS[1] + PHASE_MS[2]) {
+          rows.forEach((r) => drawFlashRow(r, "#ffffff", 1));
+        } else if (elapsed < TOTAL) {
+          const p = (elapsed - PHASE_MS[0] - PHASE_MS[1] - PHASE_MS[2]) / PHASE_MS[3];
+          rows.forEach((r) => drawFlashRow(r, "#ffffff", 1 - p));
+        } else {
+          onDone();
+          return;
+        }
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    },
+    [drawAll],
+  );
+
+  const tickRef = useRef<() => void>(() => {});
+
   const place = useCallback(() => {
     const cur = curRef.current;
     if (!cur) return;
@@ -174,34 +227,55 @@ export default function TetrisGame() {
       if (y + cur.y >= 0) boardRef.current[y + cur.y][x + cur.x] = pieceIndex(cur.key);
     });
 
-    let cleared = 0;
-    for (let r = ROWS - 1; r >= 0; r--) {
-      if (boardRef.current[r].every((c) => c)) {
-        boardRef.current.splice(r, 1);
-        boardRef.current.unshift(new Array(COLS).fill(0));
-        cleared++;
-        r++;
-      }
+    // Find full rows first (don't mutate yet)
+    const fullRows: number[] = [];
+    for (let r = 0; r < ROWS; r++) {
+      if (boardRef.current[r].every((c) => c)) fullRows.push(r);
     }
-    if (cleared) {
-      setLines((prev) => {
-        const newLines = prev + cleared;
-        const newLevel = Math.floor(newLines / 10) + 1;
-        setLevel(newLevel);
-        return newLines;
-      });
-      setScore((prev) => prev + SCORES[Math.min(cleared, 4)] * level);
-    }
-    curRef.current = nextRef.current;
-    nextRef.current = newPiece();
-    if (curRef.current && !valid(boardRef.current, curRef.current.cells, curRef.current.x, curRef.current.y)) {
-      endGame();
-      return;
-    }
-    drawAll();
-  }, [drawAll, endGame, level, pieceIndex]);
 
-  const tick = useCallback(() => {
+    const finishAfterClear = () => {
+      // Actually mutate the board now that the animation is done
+      const kept = boardRef.current.filter((_, r) => !fullRows.includes(r));
+      while (kept.length < ROWS) kept.unshift(new Array(COLS).fill(0));
+      boardRef.current = kept;
+
+      const cleared = fullRows.length;
+      if (cleared) {
+        setLines((prev) => {
+          const newLines = prev + cleared;
+          setLevel(Math.floor(newLines / 10) + 1);
+          return newLines;
+        });
+        setScore((prev) => prev + SCORES[Math.min(cleared, 4)] * level);
+      }
+      curRef.current = nextRef.current;
+      nextRef.current = newPiece();
+      if (curRef.current && !valid(boardRef.current, curRef.current.cells, curRef.current.x, curRef.current.y)) {
+        endGame();
+        return;
+      }
+      // Resume loop after animation
+      if (state === "playing") {
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => tickRef.current(), Math.max(80, 650 - level * 50));
+      }
+      drawAll();
+    };
+
+    if (fullRows.length > 0) {
+      animateClear(fullRows, finishAfterClear);
+    } else {
+      curRef.current = nextRef.current;
+      nextRef.current = newPiece();
+      if (curRef.current && !valid(boardRef.current, curRef.current.cells, curRef.current.x, curRef.current.y)) {
+        endGame();
+        return;
+      }
+      drawAll();
+    }
+  }, [animateClear, drawAll, endGame, level, pieceIndex, state]);
+
+  tickRef.current = useCallback(() => {
     const cur = curRef.current;
     if (!cur) return;
     if (!valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) {
@@ -221,9 +295,9 @@ export default function TetrisGame() {
     setLines(0);
     setState("playing");
     if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(tick, Math.max(80, 650 - 1 * 50));
+    timerRef.current = setInterval(() => tickRef.current(), Math.max(80, 650 - 1 * 50));
     drawAll();
-  }, [drawAll, tick]);
+  }, [drawAll]);
 
   useEffect(() => {
     drawAll();
@@ -232,11 +306,11 @@ export default function TetrisGame() {
   useEffect(() => {
     if (state !== "playing" || !timerRef.current) return;
     clearInterval(timerRef.current);
-    timerRef.current = setInterval(tick, Math.max(80, 650 - level * 50));
+    timerRef.current = setInterval(() => tickRef.current(), Math.max(80, 650 - level * 50));
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [state, level, tick]);
+  }, [state, level]);
 
   useEffect(() => {
     return () => {
