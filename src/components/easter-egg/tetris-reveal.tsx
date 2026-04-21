@@ -10,6 +10,7 @@ const STORAGE_KEY = "tetris-discovered";
 export default function TetrisReveal() {
   const [revealed, setRevealed] = useState(false);
   const [revealing, setRevealing] = useState(false);
+  const [hasDiscovered, setHasDiscovered] = useState(false);
   const progressRef = useRef(0);
   const barRef = useRef<HTMLDivElement>(null);
   const zoneRef = useRef<HTMLDivElement>(null);
@@ -20,7 +21,7 @@ export default function TetrisReveal() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY) === "1") {
-      setRevealed(true);
+      setHasDiscovered(true);
     }
   }, []);
 
@@ -38,6 +39,7 @@ export default function TetrisReveal() {
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {}
+    setHasDiscovered(true);
     setTimeout(() => {
       setRevealed(true);
       setRevealing(false);
@@ -242,7 +244,7 @@ export default function TetrisReveal() {
             letterSpacing: "0.02em",
           }}
         >
-          Don&apos;t scroll any further!
+          {hasDiscovered ? "Scroll to play again" : "Don\u2019t scroll any further!"}
         </span>
       </div>
     </div>
