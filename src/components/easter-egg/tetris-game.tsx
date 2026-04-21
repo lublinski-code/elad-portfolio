@@ -94,6 +94,8 @@ export default function TetrisGame() {
   const nextRef = useRef<Piece | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const colorsRef = useRef<ReturnType<typeof readColors> | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const offscreenRef = useRef(false);
 
   const [state, setState] = useState<GameState>("idle");
   const [score, setScore] = useState(0);
@@ -374,6 +376,7 @@ export default function TetrisGame() {
   );
 
   tickRef.current = useCallback(() => {
+    if (offscreenRef.current) return;
     const cur = curRef.current;
     if (!cur) return;
     if (!valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) {
@@ -419,6 +422,21 @@ export default function TetrisGame() {
   useEffect(() => {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          offscreenRef.current = !entry.isIntersecting;
+        }
+      },
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     if (state === "naming") {
@@ -491,7 +509,7 @@ export default function TetrisGame() {
   }, [state, startGame, drawAll, place]);
 
   return (
-    <div className="te-wrap">
+    <div ref={wrapRef} className="te-wrap">
       <div className="te-stats">
         <span><strong>{score}</strong>score</span>
         <span><strong>{level}</strong>level</span>
