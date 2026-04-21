@@ -11,6 +11,7 @@ export default function TetrisReveal() {
   const [revealed, setRevealed] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [hasDiscovered, setHasDiscovered] = useState(false);
+  const [debug, setDebug] = useState<string>("init");
   const progressRef = useRef(0);
   const barRef = useRef<HTMLDivElement>(null);
   const zoneRef = useRef<HTMLDivElement>(null);
@@ -18,6 +19,7 @@ export default function TetrisReveal() {
   const completedRef = useRef(false);
   const decayRaf = useRef<number>(0);
   const isAtBottom = useRef(false);
+  const startFillRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY) === "1") {
@@ -90,10 +92,10 @@ export default function TetrisReveal() {
       window.matchMedia("(pointer: coarse)").matches;
 
     if (isCoarse) {
-      // Mobile: fill the bar when the user reaches the bottom of the page.
-      // Fills over ~900ms; scrolling back up decays.
+      // Mobile: fill the bar when the zone enters the viewport.
+      // IntersectionObserver is immune to URL-bar changes, scrollHeight
+      // oddities, and fires reliably on both scroll and layout shifts.
       const FILL_MS = 900;
-      const NEAR_BOTTOM_PX = 200; // start filling when this close to doc end
       let filling = false;
       let fillStart = 0;
       let fillRaf = 0;
@@ -125,25 +127,72 @@ export default function TetrisReveal() {
         fillRaf = requestAnimationFrame(tick);
       };
 
-      const checkNearBottom = () => {
-        if (completedRef.current) return;
-        const scrollBottom = window.innerHeight + window.scrollY;
-        const docHeight = document.documentElement.scrollHeight;
-        const distanceFromBottom = docHeight - scrollBottom;
-        if (distanceFromBottom <= NEAR_BOTTOM_PX) startFill();
-        else stopFill();
+      // Expose startFill so the tap-to-fill fallback can call it.
+      startFillRef.current = startFill;
+
+      const zone = zoneRef.current;
+      if (!zone) return;
+
+      // Fire when any part of the zone is visible. Start fill once >= 30%
+      // of the zone is on screen; stop fill if it leaves entirely.
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          if (!entry) return;
+          const ratio = entry.intersectionRatio;
+          setDebug(
+            `io ratio=${ratio.toFixed(2)} vis=${entry.isIntersecting ? "y" : "n"} fill=${filling ? "y" : "n"}`,
+          );
+          if (completedRef.current) return;
+          if (entry.isIntersecting && ratio >= 0.3) {
+            startFill();
+          } else if (!entry.isIntersecting) {
+            stopFill();
+          }
+        },
+        {
+          threshold: [0, 0.15, 0.3, 0.5, 0.75, 1],
+        },
+      );
+      observer.observe(zone);
+
+      // Belt-and-suspenders: also listen for scroll+scrollend, reading
+      // the zone's bounding rect directly. Handles edge cases where the
+      // IntersectionObserver callback is delayed by layout churn.
+      const checkByRect = () => {
+        if (completedRef.current || !zoneRef.current) return;
+        const rect = zoneRef.current.getBoundingClientRect();
+        const vh =
+          window.visualViewport?.height ?? window.innerHeight;
+        // Visible ratio of zone within viewport.
+        const visibleTop = Math.max(0, rect.top);
+        const visibleBottom = Math.min(vh, rect.bottom);
+        const visible = Math.max(0, visibleBottom - visibleTop);
+        const ratio = rect.height > 0 ? visible / rect.height : 0;
+        setDebug(
+          `rect top=${Math.round(rect.top)} vh=${Math.round(vh)} ratio=${ratio.toFixed(2)} fill=${filling ? "y" : "n"}`,
+        );
+        if (ratio >= 0.3) startFill();
       };
 
-      window.addEventListener("scroll", checkNearBottom, { passive: true });
-      window.addEventListener("resize", checkNearBottom, { passive: true });
-      const initRaf = requestAnimationFrame(checkNearBottom);
+      window.addEventListener("scroll", checkByRect, { passive: true });
+      window.addEventListener("scrollend", checkByRect, { passive: true });
+      window.addEventListener("resize", checkByRect, { passive: true });
+      window.visualViewport?.addEventListener("resize", checkByRect);
+      window.visualViewport?.addEventListener("scroll", checkByRect);
+      const initRaf = requestAnimationFrame(checkByRect);
 
       return () => {
-        window.removeEventListener("scroll", checkNearBottom);
-        window.removeEventListener("resize", checkNearBottom);
+        observer.disconnect();
+        window.removeEventListener("scroll", checkByRect);
+        window.removeEventListener("scrollend", checkByRect);
+        window.removeEventListener("resize", checkByRect);
+        window.visualViewport?.removeEventListener("resize", checkByRect);
+        window.visualViewport?.removeEventListener("scroll", checkByRect);
         cancelAnimationFrame(initRaf);
         cancelAnimationFrame(fillRaf);
         cancelAnimationFrame(decayRaf.current);
+        startFillRef.current = null;
       };
     }
 
@@ -206,17 +255,27 @@ export default function TetrisReveal() {
     >
       <div
         ref={zoneRef}
+        onPointerDown={() => {
+          // Tap fallback: kicks off the same fill animation as the
+          // scroll-based trigger. Preserves the visual ceremony.
+          if (completedRef.current) return;
+          startFillRef.current?.();
+          setDebug((d) => `tap | ${d}`);
+        }}
         style={{
           position: "relative",
           height: 120,
           padding: "0 24px",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           borderRadius: 24,
           background: "rgba(0,0,0,0.04)",
           overflow: "hidden",
           willChange: "transform",
+          touchAction: "manipulation",
+          cursor: "pointer",
         }}
       >
         <div
@@ -245,6 +304,20 @@ export default function TetrisReveal() {
           }}
         >
           {hasDiscovered ? "Scroll to play again" : "Don\u2019t scroll any further!"}
+        </span>
+        <span
+          aria-hidden="true"
+          style={{
+            position: "relative",
+            marginTop: 4,
+            fontFamily: "var(--font-jetbrains-mono), monospace",
+            fontSize: 10,
+            color: "rgba(0,0,0,0.35)",
+            letterSpacing: "0.02em",
+            pointerEvents: "none",
+          }}
+        >
+          {debug}
         </span>
       </div>
     </div>
