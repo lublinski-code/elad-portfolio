@@ -642,15 +642,6 @@ export default function TetrisGame() {
                   <button className="te-btn te-btn-primary" onClick={startGame}>
                     Start new game
                   </button>
-                  <button
-                    className="te-btn"
-                    onClick={() => {
-                      const el = document.getElementById("contact");
-                      if (el) el.scrollIntoView({ behavior: "smooth" });
-                    }}
-                  >
-                    Contact
-                  </button>
                 </div>
               </div>
             )}
