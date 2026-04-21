@@ -150,8 +150,12 @@ export default function TetrisReveal() {
     return (
       <section
         id="tetris-egg"
-        className="flex flex-col overflow-hidden rounded-[24px]"
-        style={{ background: "var(--charcoal)", animation: "fadeIn 200ms ease both" }}
+        style={{
+          marginTop: "32px",
+          paddingTop: "24px",
+          paddingBottom: "48px",
+          animation: "fadeIn 200ms ease both",
+        }}
       >
         <TetrisGame />
       </section>

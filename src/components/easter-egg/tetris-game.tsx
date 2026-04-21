@@ -523,74 +523,67 @@ export default function TetrisGame() {
   }, [state, startGame, drawAll, place]);
 
   return (
-    <div ref={wrapRef}>
-      <div className="te-header">
-        <p className="heading-display" style={{ color: "var(--cream)" }}>
-          Tetris
-        </p>
-        <button
-          className="te-sound-toggle-header"
-          aria-label={soundOn ? "Mute sound" : "Enable sound"}
-          data-on={soundOn}
-          onClick={toggleSound}
-        >
-          {soundOn ? (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M11 5 6 9H2v6h4l5 4V5z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M15.54 8.46a5 5 0 0 1 0 7.07"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M19.07 4.93a10 10 0 0 1 0 14.14"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M11 5 6 9H2v6h4l5 4V5z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="m22 9-6 6M16 9l6 6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
-        </button>
+    <div ref={wrapRef} className="te-wrap">
+      <div className="te-stats">
+        <span><strong>{score}</strong>score</span>
+        <span><strong>{level}</strong>level</span>
+        <span><strong>{lines}</strong>lines</span>
       </div>
-      <div aria-hidden="true" className="te-divider" />
-      <div className="te-wrap">
-        <div className="te-stats">
-          <span><strong>{score}</strong>score</span>
-          <span><strong>{level}</strong>level</span>
-          <span><strong>{lines}</strong>lines</span>
-        </div>
       <div className="te-stage">
         <div className="te-left">
           <div
             className="te-board-wrap"
             style={{ touchAction: state === "playing" ? "none" : "auto" }}
           >
+            <button
+              className="te-sound-toggle"
+              aria-label={soundOn ? "Mute sound" : "Enable sound"}
+              data-on={soundOn}
+              onClick={toggleSound}
+            >
+              {soundOn ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M11 5 6 9H2v6h4l5 4V5z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M15.54 8.46a5 5 0 0 1 0 7.07"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M19.07 4.93a10 10 0 0 1 0 14.14"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M11 5 6 9H2v6h4l5 4V5z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="m22 9-6 6M16 9l6 6"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
             <canvas
               ref={boardCanvasRef}
               className="te-board"
@@ -599,7 +592,6 @@ export default function TetrisGame() {
             />
             {state === "idle" && (
               <div className="te-overlay">
-                <p className="te-ol-title">Tetris</p>
                 <p className="te-ol-sub">
                   ← → move &nbsp; ↑ rotate
                   <br />↓ soft drop &nbsp; space drop
@@ -608,9 +600,6 @@ export default function TetrisGame() {
                 <div className="te-btn-row">
                   <button className="te-btn te-btn-primary" onClick={startGame}>Play</button>
                 </div>
-                <button className="te-cta" onClick={toggleSound}>
-                  {soundOn ? "Sound on" : "Sound off, click to enable"}
-                </button>
               </div>
             )}
             {state === "naming" && (
@@ -723,7 +712,6 @@ export default function TetrisGame() {
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
