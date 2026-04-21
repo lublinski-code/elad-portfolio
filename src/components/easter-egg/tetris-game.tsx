@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import "./tetris.css";
+import { getSounds } from "./tetris-sounds";
 
 const COLS = 10;
 const ROWS = 20;
@@ -104,6 +105,22 @@ export default function TetrisGame() {
   const [lastScore, setLastScore] = useState(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  const [soundOn, setSoundOn] = useState(false);
+
+  useEffect(() => {
+    const sounds = getSounds();
+    setSoundOn(sounds.isEnabled());
+    const unsubscribe = sounds.subscribe(setSoundOn);
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const toggleSound = useCallback(() => {
+    const sounds = getSounds();
+    sounds.setEnabled(!sounds.isEnabled());
+  }, []);
+
   const fetchLeaderboard = useCallback(async () => {
     try {
       const r = await fetch("/api/scores");
@@ -196,6 +213,7 @@ export default function TetrisGame() {
   const pieceIndex = useCallback((k: PieceKey) => PKEYS.indexOf(k) + 1, []);
 
   const endGame = useCallback(() => {
+    getSounds().play("gameover");
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
     setLastScore(score);
@@ -278,10 +296,18 @@ export default function TetrisGame() {
       if (cleared) {
         setLines((prev) => {
           const newLines = prev + cleared;
-          setLevel(Math.floor(newLines / 10) + 1);
+          const newLevel = Math.floor(newLines / 10) + 1;
+          setLevel((prevLevel) => {
+            if (newLevel > prevLevel) getSounds().play("levelup");
+            return newLevel;
+          });
           return newLines;
         });
         setScore((prev) => prev + SCORES[Math.min(cleared, 4)] * level);
+        if (cleared === 4) getSounds().play("tetris");
+        else if (cleared === 3) getSounds().play("clear3");
+        else if (cleared === 2) getSounds().play("clear2");
+        else if (cleared === 1) getSounds().play("clear1");
       }
       curRef.current = nextRef.current;
       nextRef.current = newPiece();
@@ -380,11 +406,17 @@ export default function TetrisGame() {
       if (!cur) return;
 
       if (e.code === "ArrowLeft" || e.code === "KeyA") {
-        if (valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) cur.x--;
+        if (valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) {
+          cur.x--;
+          getSounds().play("move");
+        }
         drawAll();
         e.preventDefault();
       } else if (e.code === "ArrowRight" || e.code === "KeyD") {
-        if (valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) cur.x++;
+        if (valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) {
+          cur.x++;
+          getSounds().play("move");
+        }
         drawAll();
         e.preventDefault();
       } else if (e.code === "ArrowDown" || e.code === "KeyS") {
@@ -392,6 +424,7 @@ export default function TetrisGame() {
           cur.y++;
           drawAll();
         } else {
+          getSounds().play("drop");
           place();
         }
         e.preventDefault();
@@ -399,15 +432,18 @@ export default function TetrisGame() {
         const orig = cur.cells.map(([x, y]) => [x, y] as [number, number]);
         const rotated = rotate(cur);
         cur.cells = rotated;
+        let rotated_ok = true;
         if (!valid(boardRef.current, cur.cells, cur.x, cur.y)) {
           if (valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) cur.x++;
           else if (valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) cur.x--;
-          else cur.cells = orig;
+          else { cur.cells = orig; rotated_ok = false; }
         }
+        if (rotated_ok) getSounds().play("move");
         drawAll();
         e.preventDefault();
       } else if (e.code === "Space") {
         while (valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) cur.y++;
+        getSounds().play("drop");
         place();
         e.preventDefault();
       }
@@ -427,6 +463,14 @@ export default function TetrisGame() {
       <div className="te-stage">
         <div className="te-left">
           <div className="te-board-wrap">
+            <button
+              className="te-sound-toggle"
+              aria-label={soundOn ? "Mute sound" : "Enable sound"}
+              data-on={soundOn}
+              onClick={toggleSound}
+            >
+              {soundOn ? "🔈" : "🔇"}
+            </button>
             <canvas
               ref={boardCanvasRef}
               className="te-board"
@@ -444,6 +488,9 @@ export default function TetrisGame() {
                 <div className="te-btn-row">
                   <button className="te-btn te-btn-primary" onClick={startGame}>Play</button>
                 </div>
+                <button className="te-cta" onClick={toggleSound}>
+                  {soundOn ? "🔈 Sound on" : "🔇 Sound off — click to enable"}
+                </button>
               </div>
             )}
             {state === "naming" && (
@@ -509,6 +556,9 @@ export default function TetrisGame() {
                   }}
                 >
                   get in touch →
+                </button>
+                <button className="te-cta" onClick={toggleSound}>
+                  {soundOn ? "🔈 Sound on" : "🔇 Sound off — click to enable"}
                 </button>
               </div>
             )}
