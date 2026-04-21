@@ -88,9 +88,10 @@ export default function TetrisReveal() {
       window.matchMedia("(pointer: coarse)").matches;
 
     if (isCoarse) {
-      // Mobile: scroll-based auto-fill. When the "Don't scroll any further!" zone
-      // is mostly visible, the bar fills over ~900ms. Scroll up to cancel.
+      // Mobile: fill the bar when the user reaches the bottom of the page.
+      // Fills over ~900ms; scrolling back up decays.
       const FILL_MS = 900;
+      const NEAR_BOTTOM_PX = 200; // start filling when this close to doc end
       let filling = false;
       let fillStart = 0;
       let fillRaf = 0;
@@ -122,25 +123,22 @@ export default function TetrisReveal() {
         fillRaf = requestAnimationFrame(tick);
       };
 
-      const checkVisibility = () => {
-        const zone = zoneRef.current;
-        if (!zone || completedRef.current) return;
-        const rect = zone.getBoundingClientRect();
-        const vh = window.innerHeight;
-        const visible = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
-        const ratio = rect.height > 0 ? visible / rect.height : 0;
-        if (ratio >= 0.6) startFill();
+      const checkNearBottom = () => {
+        if (completedRef.current) return;
+        const scrollBottom = window.innerHeight + window.scrollY;
+        const docHeight = document.documentElement.scrollHeight;
+        const distanceFromBottom = docHeight - scrollBottom;
+        if (distanceFromBottom <= NEAR_BOTTOM_PX) startFill();
         else stopFill();
       };
 
-      window.addEventListener("scroll", checkVisibility, { passive: true });
-      window.addEventListener("resize", checkVisibility, { passive: true });
-      // Run once after mount in case the zone is already in view
-      const initRaf = requestAnimationFrame(checkVisibility);
+      window.addEventListener("scroll", checkNearBottom, { passive: true });
+      window.addEventListener("resize", checkNearBottom, { passive: true });
+      const initRaf = requestAnimationFrame(checkNearBottom);
 
       return () => {
-        window.removeEventListener("scroll", checkVisibility);
-        window.removeEventListener("resize", checkVisibility);
+        window.removeEventListener("scroll", checkNearBottom);
+        window.removeEventListener("resize", checkNearBottom);
         cancelAnimationFrame(initRaf);
         cancelAnimationFrame(fillRaf);
         cancelAnimationFrame(decayRaf.current);
@@ -197,6 +195,7 @@ export default function TetrisReveal() {
 
   return (
     <div
+      className="mb-[88px] md:mb-0"
       style={{
         marginTop: "32px",
         opacity: revealing ? 0 : 1,
