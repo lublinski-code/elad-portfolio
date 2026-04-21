@@ -99,6 +99,40 @@ export default function TetrisGame() {
   const [level, setLevel] = useState(1);
   const [lines, setLines] = useState(0);
 
+  type ScoreEntry = { name: string; score: number };
+  const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
+  const [lastScore, setLastScore] = useState(0);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const r = await fetch("/api/scores");
+      if (!r.ok) return;
+      const data = (await r.json()) as ScoreEntry[];
+      setLeaderboard(data);
+    } catch {
+      /* offline — show empty */
+    }
+  }, []);
+
+  const postScore = useCallback(
+    async (name: string, score: number) => {
+      try {
+        const r = await fetch("/api/scores", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, score }),
+        });
+        if (!r.ok) return;
+        const data = (await r.json()) as ScoreEntry[];
+        setLeaderboard(data);
+      } catch {
+        /* ignore */
+      }
+    },
+    [],
+  );
+
   const drawBlock = useCallback(
     (ctx: CanvasRenderingContext2D, gx: number, gy: number, color: string, alpha = 1) => {
       ctx.globalAlpha = alpha;
@@ -164,8 +198,9 @@ export default function TetrisGame() {
   const endGame = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = null;
-    setState("dead");
-  }, []);
+    setLastScore(score);
+    setState(score > 0 ? "naming" : "dead");
+  }, [score]);
 
   const animateClear = useCallback(
     (rows: number[], onDone: () => void) => {
@@ -318,6 +353,16 @@ export default function TetrisGame() {
     };
   }, []);
 
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  useEffect(() => {
+    if (state === "naming") {
+      setTimeout(() => nameInputRef.current?.focus(), 60);
+    }
+  }, [state]);
+
   // Keyboard input
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -388,7 +433,7 @@ export default function TetrisGame() {
               width={COLS * CS}
               height={ROWS * CS}
             />
-            {state !== "playing" && (
+            {state === "idle" && (
               <div className="te-overlay">
                 <p className="te-ol-title">Tetris</p>
                 <p className="te-ol-sub">
@@ -397,10 +442,74 @@ export default function TetrisGame() {
                   <br />space or enter to start
                 </p>
                 <div className="te-btn-row">
-                  <button className="te-btn te-btn-primary" onClick={startGame}>
-                    Play
-                  </button>
+                  <button className="te-btn te-btn-primary" onClick={startGame}>Play</button>
                 </div>
+              </div>
+            )}
+            {state === "naming" && (
+              <div className="te-overlay">
+                <p className="te-ol-title">Game Over</p>
+                <p className="te-ol-score-big">{lastScore}</p>
+                <p className="te-ol-score-lbl">your score</p>
+                <div className="te-name-entry">
+                  <p>enter your initials</p>
+                  <input
+                    id="te-name-inp"
+                    ref={nameInputRef}
+                    className="te-name-inp"
+                    maxLength={3}
+                    placeholder="AAA"
+                    spellCheck={false}
+                    autoComplete="off"
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter") {
+                        const n = (nameInputRef.current?.value || "???")
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9]/g, "")
+                          .slice(0, 3)
+                          .padEnd(3, "?");
+                        await postScore(n, lastScore);
+                        setState("dead");
+                      }
+                    }}
+                  />
+                </div>
+                <div className="te-btn-row">
+                  <button
+                    className="te-btn te-btn-primary"
+                    onClick={async () => {
+                      const n = (nameInputRef.current?.value || "???")
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9]/g, "")
+                        .slice(0, 3)
+                        .padEnd(3, "?");
+                      await postScore(n, lastScore);
+                      setState("dead");
+                    }}
+                  >
+                    Save Score
+                  </button>
+                  <button className="te-btn" onClick={() => setState("dead")}>Skip</button>
+                </div>
+              </div>
+            )}
+            {state === "dead" && (
+              <div className="te-overlay">
+                <p className="te-ol-title">Game Over</p>
+                <p className="te-ol-score-big">{lastScore}</p>
+                <p className="te-ol-score-lbl">your score</p>
+                <div className="te-btn-row">
+                  <button className="te-btn te-btn-primary" onClick={startGame}>Play Again</button>
+                </div>
+                <button
+                  className="te-cta"
+                  onClick={() => {
+                    const el = document.getElementById("contact");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  get in touch →
+                </button>
               </div>
             )}
           </div>
@@ -413,7 +522,17 @@ export default function TetrisGame() {
           <div>
             <p className="te-panel-label">high scores</p>
             <div>
-              <p className="te-lb-empty">no scores yet</p>
+              {leaderboard.length === 0 ? (
+                <p className="te-lb-empty">no scores yet</p>
+              ) : (
+                leaderboard.slice(0, 6).map((e, i) => (
+                  <div key={i} className={`te-lb-row ${i === 0 ? "te-lb-top" : ""}`}>
+                    <span className="te-lb-rank">{i + 1}</span>
+                    <span className="te-lb-name">{e.name}</span>
+                    <span className="te-lb-sc">{e.score}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
