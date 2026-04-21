@@ -50,79 +50,71 @@ class TetrisSounds {
     const ctx = this.ctx;
     const now = ctx.currentTime;
 
-    const tone = (
-      freq: number,
-      dur: number,
-      type: OscillatorType,
-      gain: number,
-      start = 0,
-    ) => {
+    const blip = (freq: number, dur: number, gain: number, startOffset = 0) => {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, now + start);
-      g.gain.setValueAtTime(0, now + start);
-      g.gain.linearRampToValueAtTime(gain, now + start + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+      osc.type = "square";
+      osc.frequency.setValueAtTime(freq, now + startOffset);
+      g.gain.setValueAtTime(0, now + startOffset);
+      g.gain.linearRampToValueAtTime(gain, now + startOffset + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, now + startOffset + dur);
       osc.connect(g).connect(ctx.destination);
-      osc.start(now + start);
-      osc.stop(now + start + dur);
+      osc.start(now + startOffset);
+      osc.stop(now + startOffset + dur);
     };
 
-    const slide = (
-      f1: number,
-      f2: number,
-      dur: number,
-      type: OscillatorType,
-      gain: number,
-    ) => {
+    const fatBlip = (freq: number, dur: number, gain: number, startOffset = 0) => {
+      blip(freq, dur, gain * 0.75, startOffset);
+      blip(freq * 1.005, dur, gain * 0.5, startOffset);
+    };
+
+    const sweep = (f1: number, f2: number, dur: number, gain: number, startOffset = 0) => {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(f1, now);
-      osc.frequency.exponentialRampToValueAtTime(f2, now + dur);
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(gain, now + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      osc.type = "square";
+      osc.frequency.setValueAtTime(f1, now + startOffset);
+      osc.frequency.exponentialRampToValueAtTime(f2, now + startOffset + dur);
+      g.gain.setValueAtTime(0, now + startOffset);
+      g.gain.linearRampToValueAtTime(gain, now + startOffset + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, now + startOffset + dur);
       osc.connect(g).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + dur);
+      osc.start(now + startOffset);
+      osc.stop(now + startOffset + dur);
+    };
+
+    const arp = (freqs: number[], stepMs: number, dur: number, gain: number) => {
+      const step = stepMs / 1000;
+      freqs.forEach((f, i) => fatBlip(f, dur, gain, i * step));
     };
 
     switch (event) {
       case "move":
-        tone(440, 0.04, "square", 0.05);
+        sweep(520, 660, 0.04, 0.09);
         break;
       case "drop":
-        slide(120, 80, 0.09, "sine", 0.15);
+        sweep(180, 90, 0.08, 0.18);
+        blip(90, 0.05, 0.1, 0.05);
         break;
       case "clear1":
-        tone(659.25, 0.09, "triangle", 0.1);
-        tone(783.99, 0.09, "triangle", 0.1, 0.09);
+        arp([523.25, 659.25, 783.99], 45, 0.09, 0.11);
         break;
       case "clear2":
-        tone(783.99, 0.09, "triangle", 0.11);
-        tone(987.77, 0.09, "triangle", 0.11, 0.09);
+        arp([587.33, 739.99, 880.0], 45, 0.09, 0.12);
         break;
       case "clear3":
-        tone(987.77, 0.09, "triangle", 0.12);
-        tone(1174.66, 0.09, "triangle", 0.12, 0.09);
+        arp([659.25, 830.61, 987.77], 45, 0.1, 0.13);
         break;
       case "tetris":
-        tone(523.25, 0.1, "triangle", 0.18, 0);
-        tone(659.25, 0.1, "triangle", 0.18, 0.1);
-        tone(783.99, 0.1, "triangle", 0.18, 0.2);
-        tone(1046.5, 0.14, "triangle", 0.2, 0.3);
+        arp([523.25, 659.25, 783.99, 1046.5, 1318.51], 55, 0.12, 0.14);
+        fatBlip(1568.0, 0.25, 0.16, 0.3);
         break;
       case "levelup":
-        tone(523.25, 0.1, "sine", 0.12, 0);
-        tone(659.25, 0.1, "sine", 0.12, 0.1);
-        tone(783.99, 0.14, "sine", 0.14, 0.2);
+        arp([440, 554.37, 659.25, 880.0], 40, 0.1, 0.12);
+        fatBlip(1108.73, 0.22, 0.14, 0.18);
         break;
       case "gameover":
-        tone(440, 0.2, "sine", 0.13, 0);
-        tone(349.23, 0.2, "sine", 0.13, 0.2);
-        tone(261.63, 0.3, "sine", 0.13, 0.4);
+        sweep(520, 260, 0.18, 0.16);
+        sweep(330, 165, 0.28, 0.14, 0.2);
         break;
     }
   }

@@ -106,6 +106,7 @@ export default function TetrisGame() {
   const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
   const [lastScore, setLastScore] = useState(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const submittingRef = useRef(false);
 
   const [soundOn, setSoundOn] = useState(false);
 
@@ -151,6 +152,18 @@ export default function TetrisGame() {
     },
     [],
   );
+
+  const handleSave = useCallback(async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    const n = (nameInputRef.current?.value || "???")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 3)
+      .padEnd(3, "?");
+    await postScore(n, lastScore);
+    setState("dead");
+  }, [postScore, lastScore]);
 
   const drawBlock = useCallback(
     (ctx: CanvasRenderingContext2D, gx: number, gy: number, color: string, alpha = 1) => {
@@ -440,6 +453,7 @@ export default function TetrisGame() {
 
   useEffect(() => {
     if (state === "naming") {
+      submittingRef.current = false;
       setTimeout(() => nameInputRef.current?.focus(), 60);
     }
   }, [state]);
@@ -509,26 +523,74 @@ export default function TetrisGame() {
   }, [state, startGame, drawAll, place]);
 
   return (
-    <div ref={wrapRef} className="te-wrap">
-      <div className="te-stats">
-        <span><strong>{score}</strong>score</span>
-        <span><strong>{level}</strong>level</span>
-        <span><strong>{lines}</strong>lines</span>
+    <div ref={wrapRef}>
+      <div className="te-header">
+        <p className="heading-display" style={{ color: "var(--cream)" }}>
+          Tetris
+        </p>
+        <button
+          className="te-sound-toggle-header"
+          aria-label={soundOn ? "Mute sound" : "Enable sound"}
+          data-on={soundOn}
+          onClick={toggleSound}
+        >
+          {soundOn ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M11 5 6 9H2v6h4l5 4V5z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M15.54 8.46a5 5 0 0 1 0 7.07"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M19.07 4.93a10 10 0 0 1 0 14.14"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M11 5 6 9H2v6h4l5 4V5z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="m22 9-6 6M16 9l6 6"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </button>
       </div>
+      <div aria-hidden="true" className="te-divider" />
+      <div className="te-wrap">
+        <div className="te-stats">
+          <span><strong>{score}</strong>score</span>
+          <span><strong>{level}</strong>level</span>
+          <span><strong>{lines}</strong>lines</span>
+        </div>
       <div className="te-stage">
         <div className="te-left">
           <div
             className="te-board-wrap"
             style={{ touchAction: state === "playing" ? "none" : "auto" }}
           >
-            <button
-              className="te-sound-toggle"
-              aria-label={soundOn ? "Mute sound" : "Enable sound"}
-              data-on={soundOn}
-              onClick={toggleSound}
-            >
-              {soundOn ? "🔈" : "🔇"}
-            </button>
             <canvas
               ref={boardCanvasRef}
               className="te-board"
@@ -547,7 +609,7 @@ export default function TetrisGame() {
                   <button className="te-btn te-btn-primary" onClick={startGame}>Play</button>
                 </div>
                 <button className="te-cta" onClick={toggleSound}>
-                  {soundOn ? "🔈 Sound on" : "🔇 Sound off — click to enable"}
+                  {soundOn ? "Sound on" : "Sound off, click to enable"}
                 </button>
               </div>
             )}
@@ -566,35 +628,19 @@ export default function TetrisGame() {
                     placeholder="AAA"
                     spellCheck={false}
                     autoComplete="off"
-                    onKeyDown={async (e) => {
+                    onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        const n = (nameInputRef.current?.value || "???")
-                          .toUpperCase()
-                          .replace(/[^A-Z0-9]/g, "")
-                          .slice(0, 3)
-                          .padEnd(3, "?");
-                        await postScore(n, lastScore);
-                        setState("dead");
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSave();
                       }
                     }}
                   />
                 </div>
                 <div className="te-btn-row">
-                  <button
-                    className="te-btn te-btn-primary"
-                    onClick={async () => {
-                      const n = (nameInputRef.current?.value || "???")
-                        .toUpperCase()
-                        .replace(/[^A-Z0-9]/g, "")
-                        .slice(0, 3)
-                        .padEnd(3, "?");
-                      await postScore(n, lastScore);
-                      setState("dead");
-                    }}
-                  >
+                  <button className="te-btn te-btn-primary" onClick={handleSave}>
                     Save Score
                   </button>
-                  <button className="te-btn" onClick={() => setState("dead")}>Skip</button>
                 </div>
               </div>
             )}
@@ -604,20 +650,19 @@ export default function TetrisGame() {
                 <p className="te-ol-score-big">{lastScore}</p>
                 <p className="te-ol-score-lbl">your score</p>
                 <div className="te-btn-row">
-                  <button className="te-btn te-btn-primary" onClick={startGame}>Play Again</button>
+                  <button className="te-btn te-btn-primary" onClick={startGame}>
+                    Start new game
+                  </button>
+                  <button
+                    className="te-btn"
+                    onClick={() => {
+                      const el = document.getElementById("contact");
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    }}
+                  >
+                    Contact
+                  </button>
                 </div>
-                <button
-                  className="te-cta"
-                  onClick={() => {
-                    const el = document.getElementById("contact");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  get in touch →
-                </button>
-                <button className="te-cta" onClick={toggleSound}>
-                  {soundOn ? "🔈 Sound on" : "🔇 Sound off — click to enable"}
-                </button>
               </div>
             )}
           </div>
@@ -678,6 +723,7 @@ export default function TetrisGame() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
