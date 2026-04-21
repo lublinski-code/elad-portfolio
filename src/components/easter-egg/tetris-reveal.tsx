@@ -16,7 +16,6 @@ export default function TetrisReveal() {
   const labelRef = useRef<HTMLSpanElement>(null);
   const completedRef = useRef(false);
   const decayRaf = useRef<number>(0);
-  const touchStartY = useRef(0);
   const isAtBottom = useRef(false);
 
   useEffect(() => {
@@ -84,6 +83,66 @@ export default function TetrisReveal() {
 
   useEffect(() => {
     if (revealed) return;
+    const isCoarse =
+      typeof window !== "undefined" &&
+      window.matchMedia("(pointer: coarse)").matches;
+
+    if (isCoarse) {
+      // Mobile: auto-fill the bar while the zone is mostly in view.
+      // Scroll back up to cancel. No touch-drag gymnastics.
+      const zone = zoneRef.current;
+      if (!zone) return;
+
+      const FILL_MS = 900;
+      let filling = false;
+      let fillStart = 0;
+      let fillRaf = 0;
+
+      const stopFill = () => {
+        filling = false;
+        cancelAnimationFrame(fillRaf);
+        if (progressRef.current > 0 && !completedRef.current) startDecay();
+      };
+
+      const startFill = () => {
+        if (filling || completedRef.current) return;
+        cancelAnimationFrame(decayRaf.current);
+        filling = true;
+        const resume = (progressRef.current / THRESHOLD) * FILL_MS;
+        fillStart = performance.now() - resume;
+        const tick = (now: number) => {
+          if (!filling || completedRef.current) return;
+          const elapsed = now - fillStart;
+          progressRef.current = Math.min((elapsed / FILL_MS) * THRESHOLD, THRESHOLD);
+          updateVisuals();
+          if (progressRef.current >= THRESHOLD) {
+            complete();
+            return;
+          }
+          fillRaf = requestAnimationFrame(tick);
+        };
+        fillRaf = requestAnimationFrame(tick);
+      };
+
+      const obs = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.intersectionRatio >= 0.85) startFill();
+            else stopFill();
+          }
+        },
+        { threshold: [0, 0.5, 0.85, 1.0] },
+      );
+      obs.observe(zone);
+
+      return () => {
+        obs.disconnect();
+        cancelAnimationFrame(fillRaf);
+        cancelAnimationFrame(decayRaf.current);
+      };
+    }
+
+    // Desktop: wheel / trackpad pull-release
     let decayTimeout: ReturnType<typeof setTimeout>;
 
     const onWheel = (e: WheelEvent) => {
@@ -102,49 +161,18 @@ export default function TetrisReveal() {
       decayTimeout = setTimeout(startDecay, 200);
     };
 
-    const onTouchStart = (e: TouchEvent) => {
-      checkAtBottom();
-      if (!isAtBottom.current) return;
-      touchStartY.current = e.touches[0].clientY;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      checkAtBottom();
-      if (!isAtBottom.current) return;
-      const deltaY = touchStartY.current - e.touches[0].clientY;
-      if (deltaY <= 0) {
-        if (progressRef.current > 0) {
-          progressRef.current = 0;
-          updateVisuals();
-        }
-        return;
-      }
-      addProgress(deltaY * 0.15);
-      touchStartY.current = e.touches[0].clientY;
-    };
-
-    const onTouchEnd = () => {
-      if (progressRef.current > 0 && !completedRef.current) startDecay();
-    };
-
     const onScroll = () => checkAtBottom();
 
     window.addEventListener("wheel", onWheel, { passive: true });
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(decayRaf.current);
       clearTimeout(decayTimeout);
     };
-  }, [revealed, addProgress, checkAtBottom, startDecay, updateVisuals]);
+  }, [revealed, addProgress, checkAtBottom, complete, startDecay, updateVisuals]);
 
   if (revealed) {
     return (
