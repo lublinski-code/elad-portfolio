@@ -244,6 +244,60 @@ export default function TetrisGame() {
     };
   }, []);
 
+  // Keyboard input
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (state === "idle" || state === "dead") {
+        if (e.code === "Space" || e.code === "Enter") {
+          const inp = document.getElementById("te-name-inp") as HTMLInputElement | null;
+          if (inp && document.activeElement === inp) return;
+          startGame();
+          e.preventDefault();
+        }
+        return;
+      }
+      if (state !== "playing") return;
+      const cur = curRef.current;
+      if (!cur) return;
+
+      if (e.code === "ArrowLeft" || e.code === "KeyA") {
+        if (valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) cur.x--;
+        drawAll();
+        e.preventDefault();
+      } else if (e.code === "ArrowRight" || e.code === "KeyD") {
+        if (valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) cur.x++;
+        drawAll();
+        e.preventDefault();
+      } else if (e.code === "ArrowDown" || e.code === "KeyS") {
+        if (valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) {
+          cur.y++;
+          drawAll();
+        } else {
+          place();
+        }
+        e.preventDefault();
+      } else if (e.code === "ArrowUp" || e.code === "KeyW") {
+        const orig = cur.cells.map(([x, y]) => [x, y] as [number, number]);
+        const rotated = rotate(cur);
+        cur.cells = rotated;
+        if (!valid(boardRef.current, cur.cells, cur.x, cur.y)) {
+          if (valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) cur.x++;
+          else if (valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) cur.x--;
+          else cur.cells = orig;
+        }
+        drawAll();
+        e.preventDefault();
+      } else if (e.code === "Space") {
+        while (valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) cur.y++;
+        place();
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state, startGame, drawAll, place]);
+
   return (
     <div className="te-wrap">
       <div className="te-stats">
