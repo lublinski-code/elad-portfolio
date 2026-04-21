@@ -88,17 +88,15 @@ export default function TetrisReveal() {
       window.matchMedia("(pointer: coarse)").matches;
 
     if (isCoarse) {
-      // Mobile: auto-fill the bar while the zone is mostly in view.
-      // Scroll back up to cancel. No touch-drag gymnastics.
-      const zone = zoneRef.current;
-      if (!zone) return;
-
+      // Mobile: scroll-based auto-fill. When the "Don't scroll any further!" zone
+      // is mostly visible, the bar fills over ~900ms. Scroll up to cancel.
       const FILL_MS = 900;
       let filling = false;
       let fillStart = 0;
       let fillRaf = 0;
 
       const stopFill = () => {
+        if (!filling) return;
         filling = false;
         cancelAnimationFrame(fillRaf);
         if (progressRef.current > 0 && !completedRef.current) startDecay();
@@ -124,19 +122,26 @@ export default function TetrisReveal() {
         fillRaf = requestAnimationFrame(tick);
       };
 
-      const obs = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.intersectionRatio >= 0.85) startFill();
-            else stopFill();
-          }
-        },
-        { threshold: [0, 0.5, 0.85, 1.0] },
-      );
-      obs.observe(zone);
+      const checkVisibility = () => {
+        const zone = zoneRef.current;
+        if (!zone || completedRef.current) return;
+        const rect = zone.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const visible = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+        const ratio = rect.height > 0 ? visible / rect.height : 0;
+        if (ratio >= 0.6) startFill();
+        else stopFill();
+      };
+
+      window.addEventListener("scroll", checkVisibility, { passive: true });
+      window.addEventListener("resize", checkVisibility, { passive: true });
+      // Run once after mount in case the zone is already in view
+      const initRaf = requestAnimationFrame(checkVisibility);
 
       return () => {
-        obs.disconnect();
+        window.removeEventListener("scroll", checkVisibility);
+        window.removeEventListener("resize", checkVisibility);
+        cancelAnimationFrame(initRaf);
         cancelAnimationFrame(fillRaf);
         cancelAnimationFrame(decayRaf.current);
       };
