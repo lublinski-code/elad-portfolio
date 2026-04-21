@@ -1,14 +1,15 @@
 import { Redis } from "@upstash/redis";
+import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
+export const preferredRegion = "fra1";
+
 if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
   throw new Error("Missing UPSTASH_REDIS_REST_URL (or KV_REST_API_URL) env var");
 }
 if (!process.env.UPSTASH_REDIS_REST_TOKEN && !process.env.KV_REST_API_TOKEN) {
   throw new Error("Missing UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_TOKEN) env var");
 }
-import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
-export const preferredRegion = "fra1";
 
 const redis = Redis.fromEnv();
 const KEY = "tetris:scores";
