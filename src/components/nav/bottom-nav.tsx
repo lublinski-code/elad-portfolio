@@ -11,15 +11,24 @@ export default function BottomNav() {
   const { activeId, progress, setActiveId, isInnerPage, isTransitioning } =
     useActiveSection();
   const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const stripRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll to center the active item
+  // Auto-scroll to center the active item.
+  // We write scrollLeft directly on the strip instead of calling
+  // scrollIntoView on the button. scrollIntoView walks every scrollable
+  // ancestor (including the document), and on mobile Chrome the smooth
+  // animation gets cancelled or hijacked when it's fired while the user
+  // is mid-scroll — the strip ends up frozen even though activeId is
+  // updating. Writing scrollLeft only touches the strip.
   useEffect(() => {
+    const strip = stripRef.current;
     const block = blockRefs.current[activeId];
-    if (!block) return;
-    block.scrollIntoView({
+    if (!strip || !block) return;
+    const target =
+      block.offsetLeft - strip.clientWidth / 2 + block.offsetWidth / 2;
+    strip.scrollTo({
+      left: Math.max(0, target),
       behavior: isTransitioning ? "instant" : "smooth",
-      inline: "center",
-      block: "nearest",
     });
   }, [activeId, isTransitioning]);
 
@@ -48,6 +57,7 @@ export default function BottomNav() {
       style={{ background: "var(--cream)" }}
     >
       <div
+        ref={stripRef}
         className="no-scrollbar flex w-full gap-[8px] overflow-x-auto px-[24px] py-[24px]"
         style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
       >

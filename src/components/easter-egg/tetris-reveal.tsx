@@ -91,20 +91,17 @@ export default function TetrisReveal() {
       window.matchMedia("(pointer: coarse)").matches;
 
     if (isCoarse) {
-      // Mobile: fill the bar when the zone enters the viewport.
-      // IntersectionObserver is immune to URL-bar changes, scrollHeight
-      // oddities, and fires reliably on both scroll and layout shifts.
+      // Mobile: fill the bar when the zone enters the viewport. Once
+      // started, the fill always runs to completion — we don't stop on
+      // un-intersect. On a Pixel-class viewport, the zone is near the
+      // end of the document, so any user scroll that reaches it is
+      // enough to commit. Stopping mid-fill when the zone briefly
+      // leaves the viewport (URL bar changes, rubber-banding) produced
+      // a dead state where the game never revealed.
       const FILL_MS = 900;
       let filling = false;
       let fillStart = 0;
       let fillRaf = 0;
-
-      const stopFill = () => {
-        if (!filling) return;
-        filling = false;
-        cancelAnimationFrame(fillRaf);
-        if (progressRef.current > 0 && !completedRef.current) startDecay();
-      };
 
       const startFill = () => {
         if (filling || completedRef.current) return;
@@ -113,7 +110,7 @@ export default function TetrisReveal() {
         const resume = (progressRef.current / THRESHOLD) * FILL_MS;
         fillStart = performance.now() - resume;
         const tick = (now: number) => {
-          if (!filling || completedRef.current) return;
+          if (completedRef.current) return;
           const elapsed = now - fillStart;
           progressRef.current = Math.min((elapsed / FILL_MS) * THRESHOLD, THRESHOLD);
           updateVisuals();
@@ -132,19 +129,17 @@ export default function TetrisReveal() {
       const zone = zoneRef.current;
       if (!zone) return;
 
-      // Auto-fill when the zone scrolls into view (15% visible is enough,
-      // matches when the user has scrolled to its top edge).
+      // Fire as soon as any part of the zone enters the viewport. On
+      // mobile the zone sits at the bottom of a tall page, so even a
+      // sliver of intersection means the user has scrolled far enough
+      // to commit.
       const observer = new IntersectionObserver(
         (entries) => {
           const entry = entries[0];
           if (!entry || completedRef.current) return;
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.15) {
-            startFill();
-          } else if (!entry.isIntersecting) {
-            stopFill();
-          }
+          if (entry.isIntersecting) startFill();
         },
-        { threshold: [0, 0.15, 0.5, 1] },
+        { threshold: 0 },
       );
       observer.observe(zone);
 
@@ -192,6 +187,7 @@ export default function TetrisReveal() {
     return (
       <section
         id="tetris-egg"
+        className="mb-[88px] md:mb-0"
         style={{
           marginTop: "32px",
           paddingTop: "24px",
