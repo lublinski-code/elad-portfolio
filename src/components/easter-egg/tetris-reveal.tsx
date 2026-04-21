@@ -91,13 +91,9 @@ export default function TetrisReveal() {
       window.matchMedia("(pointer: coarse)").matches;
 
     if (isCoarse) {
-      // Mobile: fill the bar when the zone enters the viewport. Once
-      // started, the fill always runs to completion — we don't stop on
-      // un-intersect. On a Pixel-class viewport, the zone is near the
-      // end of the document, so any user scroll that reaches it is
-      // enough to commit. Stopping mid-fill when the zone briefly
-      // leaves the viewport (URL bar changes, rubber-banding) produced
-      // a dead state where the game never revealed.
+      // Mobile: tap the zone to start the fill. Scroll-based triggers
+      // proved unreliable across Chrome Android due to URL-bar viewport
+      // changes and rubber-band intersection events. Tap is deterministic.
       const FILL_MS = 900;
       let filling = false;
       let fillStart = 0;
@@ -123,28 +119,9 @@ export default function TetrisReveal() {
         fillRaf = requestAnimationFrame(tick);
       };
 
-      // Expose startFill so the tap-to-fill fallback can call it.
       startFillRef.current = startFill;
 
-      const zone = zoneRef.current;
-      if (!zone) return;
-
-      // Fire as soon as any part of the zone enters the viewport. On
-      // mobile the zone sits at the bottom of a tall page, so even a
-      // sliver of intersection means the user has scrolled far enough
-      // to commit.
-      const observer = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          if (!entry || completedRef.current) return;
-          if (entry.isIntersecting) startFill();
-        },
-        { threshold: 0 },
-      );
-      observer.observe(zone);
-
       return () => {
-        observer.disconnect();
         cancelAnimationFrame(fillRaf);
         cancelAnimationFrame(decayRaf.current);
         startFillRef.current = null;

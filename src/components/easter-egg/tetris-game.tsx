@@ -352,7 +352,7 @@ export default function TetrisGame() {
   }, [animateClear, drawAll, endGame, level, pieceIndex, state]);
 
   const dpadAction = useCallback(
-    (a: "left" | "right" | "down" | "rot") => {
+    (a: "left" | "right" | "down" | "rot" | "hardDrop") => {
       if (state !== "playing") return;
       const cur = curRef.current;
       if (!cur) return;
@@ -372,6 +372,10 @@ export default function TetrisGame() {
           getSounds().play("drop");
           place();
         }
+      } else if (a === "hardDrop") {
+        while (valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) cur.y++;
+        getSounds().play("drop");
+        place();
       } else if (a === "rot") {
         const orig = cur.cells.map(([x, y]) => [x, y] as [number, number]);
         cur.cells = rotate(cur);
@@ -531,6 +535,10 @@ export default function TetrisGame() {
       </div>
       <div className="te-stage">
         <div className="te-left">
+          <div className="te-next-wrap">
+            <p className="te-panel-label">next</p>
+            <canvas ref={nextCanvasRef} className="te-next" width={120} height={80} />
+          </div>
           <div
             className="te-board-wrap"
             style={{ touchAction: state === "playing" ? "none" : "auto" }}
@@ -655,6 +663,13 @@ export default function TetrisGame() {
               >
                 ↻
               </button>
+              <button
+                className="te-db"
+                aria-label="Hard drop"
+                onPointerDown={(e) => { e.preventDefault(); dpadAction("hardDrop"); }}
+              >
+                ⤓
+              </button>
             </div>
             <div className="te-drow">
               <button
@@ -682,10 +697,6 @@ export default function TetrisGame() {
           </div>
         </div>
         <div className="te-right">
-          <div>
-            <p className="te-panel-label">next</p>
-            <canvas ref={nextCanvasRef} className="te-next" width={120} height={80} />
-          </div>
           <div>
             <p className="te-panel-label">high scores</p>
             <div>
