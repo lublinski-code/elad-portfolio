@@ -336,6 +336,43 @@ export default function TetrisGame() {
     }
   }, [animateClear, drawAll, endGame, level, pieceIndex, state]);
 
+  const dpadAction = useCallback(
+    (a: "left" | "right" | "down" | "rot") => {
+      if (state !== "playing") return;
+      const cur = curRef.current;
+      if (!cur) return;
+      if (a === "left" && valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) {
+        cur.x--;
+        drawAll();
+        getSounds().play("move");
+      } else if (a === "right" && valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) {
+        cur.x++;
+        drawAll();
+        getSounds().play("move");
+      } else if (a === "down") {
+        if (valid(boardRef.current, cur.cells, cur.x, cur.y + 1)) {
+          cur.y++;
+          drawAll();
+        } else {
+          getSounds().play("drop");
+          place();
+        }
+      } else if (a === "rot") {
+        const orig = cur.cells.map(([x, y]) => [x, y] as [number, number]);
+        cur.cells = rotate(cur);
+        let rotated_ok = true;
+        if (!valid(boardRef.current, cur.cells, cur.x, cur.y)) {
+          if (valid(boardRef.current, cur.cells, cur.x + 1, cur.y)) cur.x++;
+          else if (valid(boardRef.current, cur.cells, cur.x - 1, cur.y)) cur.x--;
+          else { cur.cells = orig; rotated_ok = false; }
+        }
+        if (rotated_ok) getSounds().play("move");
+        drawAll();
+      }
+    },
+    [state, drawAll, place],
+  );
+
   tickRef.current = useCallback(() => {
     const cur = curRef.current;
     if (!cur) return;
@@ -462,7 +499,10 @@ export default function TetrisGame() {
       </div>
       <div className="te-stage">
         <div className="te-left">
-          <div className="te-board-wrap">
+          <div
+            className="te-board-wrap"
+            style={{ touchAction: state === "playing" ? "none" : "auto" }}
+          >
             <button
               className="te-sound-toggle"
               aria-label={soundOn ? "Mute sound" : "Enable sound"}
@@ -562,6 +602,40 @@ export default function TetrisGame() {
                 </button>
               </div>
             )}
+          </div>
+          <div className="te-dpad">
+            <div className="te-drow">
+              <button
+                className="te-db"
+                aria-label="Rotate"
+                onPointerDown={(e) => { e.preventDefault(); dpadAction("rot"); }}
+              >
+                ↻
+              </button>
+            </div>
+            <div className="te-drow">
+              <button
+                className="te-db"
+                aria-label="Move left"
+                onPointerDown={(e) => { e.preventDefault(); dpadAction("left"); }}
+              >
+                ←
+              </button>
+              <button
+                className="te-db"
+                aria-label="Soft drop"
+                onPointerDown={(e) => { e.preventDefault(); dpadAction("down"); }}
+              >
+                ↓
+              </button>
+              <button
+                className="te-db"
+                aria-label="Move right"
+                onPointerDown={(e) => { e.preventDefault(); dpadAction("right"); }}
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
         <div className="te-right">
