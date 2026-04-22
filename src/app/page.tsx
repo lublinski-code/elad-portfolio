@@ -5,6 +5,7 @@ import About from "@/components/sections/about";
 import Contact from "@/components/sections/contact";
 import Footer from "@/components/sections/footer";
 import ScrollRestore from "@/components/work/scroll-restore";
+import TetrisReveal from "@/components/easter-egg/tetris-reveal";
 
 export default function Home() {
   return (
@@ -28,6 +29,7 @@ export default function Home() {
           <About />
           <Contact />
           <Footer />
+          <TetrisReveal />
         </div>
       </main>
     </>
