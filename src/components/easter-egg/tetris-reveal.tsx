@@ -19,6 +19,7 @@ export default function TetrisReveal() {
   const decayRaf = useRef<number>(0);
   const isAtBottom = useRef(false);
   const startFillRef = useRef<(() => void) | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY) === "1") {
@@ -83,6 +84,28 @@ export default function TetrisReveal() {
     const docHeight = document.documentElement.scrollHeight;
     isAtBottom.current = scrollBottom >= docHeight - 2;
   }, []);
+
+  // Hide/show the mobile bottom nav when the game section is in view.
+  // Dispatches window events that BottomNav listens for.
+  useEffect(() => {
+    if (!revealed) return;
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries[0]?.isIntersecting ?? false;
+        window.dispatchEvent(
+          new CustomEvent(visible ? "tetris-in-view" : "tetris-out-of-view"),
+        );
+      },
+      { threshold: 0.15 },
+    );
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      window.dispatchEvent(new CustomEvent("tetris-out-of-view"));
+    };
+  }, [revealed]);
 
   useEffect(() => {
     if (revealed) return;
@@ -163,6 +186,7 @@ export default function TetrisReveal() {
   if (revealed) {
     return (
       <section
+        ref={sectionRef}
         id="tetris-egg"
         className="mb-[88px] md:mb-0"
         style={{

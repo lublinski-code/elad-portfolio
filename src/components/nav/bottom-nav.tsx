@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sections } from "./sections";
 import { useActiveSection } from "./active-section-context";
 
@@ -12,6 +12,20 @@ export default function BottomNav() {
     useActiveSection();
   const blockRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const stripRef = useRef<HTMLDivElement | null>(null);
+  const [hiddenForEgg, setHiddenForEgg] = useState(false);
+
+  // Listen for the easter-egg game section entering/leaving the viewport.
+  // When it's visible we slide the nav off-screen to give the game more room.
+  useEffect(() => {
+    const hide = () => setHiddenForEgg(true);
+    const show = () => setHiddenForEgg(false);
+    window.addEventListener("tetris-in-view", hide);
+    window.addEventListener("tetris-out-of-view", show);
+    return () => {
+      window.removeEventListener("tetris-in-view", hide);
+      window.removeEventListener("tetris-out-of-view", show);
+    };
+  }, []);
 
   // Auto-scroll to center the active item.
   // We write scrollLeft directly on the strip instead of calling
@@ -54,7 +68,11 @@ export default function BottomNav() {
     <nav
       aria-label="Sections"
       className="fixed bottom-0 left-0 right-0 z-30 md:hidden"
-      style={{ background: "var(--cream)" }}
+      style={{
+        background: "var(--cream)",
+        transform: hiddenForEgg ? "translateY(110%)" : "translateY(0)",
+        transition: "transform 300ms cubic-bezier(0.32, 0.72, 0, 1)",
+      }}
     >
       <div
         ref={stripRef}
