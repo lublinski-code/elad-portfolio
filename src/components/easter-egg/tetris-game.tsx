@@ -534,11 +534,11 @@ export default function TetrisGame() {
         <span><strong>{lines}</strong>lines</span>
       </div>
       <div className="te-stage">
-        <div className="te-left">
-          <div className="te-next-wrap">
-            <p className="te-panel-label">next</p>
-            <canvas ref={nextCanvasRef} className="te-next" width={120} height={80} />
-          </div>
+        <div className="te-next-wrap">
+          <p className="te-panel-label">next</p>
+          <canvas ref={nextCanvasRef} className="te-next" width={120} height={80} />
+        </div>
+        <div className="te-board-col">
           <div
             className="te-board-wrap"
             style={{ touchAction: state === "playing" ? "none" : "auto" }}
@@ -698,22 +698,20 @@ export default function TetrisGame() {
             </button>
           </div>
         </div>
-        <div className="te-right">
+        <div className="te-lb-wrap">
+          <p className="te-panel-label">high scores</p>
           <div>
-            <p className="te-panel-label">high scores</p>
-            <div>
-              {leaderboard.length === 0 ? (
-                <p className="te-lb-empty">no scores yet</p>
-              ) : (
-                leaderboard.slice(0, 6).map((e, i) => (
-                  <div key={i} className={`te-lb-row ${i === 0 ? "te-lb-top" : ""}`}>
-                    <span className="te-lb-rank">{i + 1}</span>
-                    <span className="te-lb-name">{e.name}</span>
-                    <span className="te-lb-sc">{e.score}</span>
-                  </div>
-                ))
-              )}
-            </div>
+            {leaderboard.length === 0 ? (
+              <p className="te-lb-empty">no scores yet</p>
+            ) : (
+              leaderboard.slice(0, 6).map((e, i) => (
+                <div key={i} className={`te-lb-row ${i === 0 ? "te-lb-top" : ""}`}>
+                  <span className="te-lb-rank">{i + 1}</span>
+                  <span className="te-lb-name">{e.name}</span>
+                  <span className="te-lb-sc">{e.score}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
