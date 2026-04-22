@@ -654,46 +654,48 @@ export default function TetrisGame() {
               </div>
             )}
           </div>
-          <div className="te-dpad">
-            <div className="te-drow">
-              <button
-                className="te-db"
-                aria-label="Rotate"
-                onPointerDown={(e) => { e.preventDefault(); dpadAction("rot"); }}
-              >
-                ↻
-              </button>
-              <button
-                className="te-db"
-                aria-label="Hard drop"
-                onPointerDown={(e) => { e.preventDefault(); dpadAction("hardDrop"); }}
-              >
-                ⤓
-              </button>
+          <div className="te-controls">
+            <div className="te-dpad">
+              <div className="te-drow">
+                <button
+                  className="te-db"
+                  aria-label="Rotate"
+                  onPointerDown={(e) => { e.preventDefault(); dpadAction("rot"); }}
+                >
+                  ↻
+                </button>
+              </div>
+              <div className="te-drow">
+                <button
+                  className="te-db"
+                  aria-label="Move left"
+                  onPointerDown={(e) => { e.preventDefault(); dpadAction("left"); }}
+                >
+                  ←
+                </button>
+                <button
+                  className="te-db"
+                  aria-label="Soft drop"
+                  onPointerDown={(e) => { e.preventDefault(); dpadAction("down"); }}
+                >
+                  ↓
+                </button>
+                <button
+                  className="te-db"
+                  aria-label="Move right"
+                  onPointerDown={(e) => { e.preventDefault(); dpadAction("right"); }}
+                >
+                  →
+                </button>
+              </div>
             </div>
-            <div className="te-drow">
-              <button
-                className="te-db"
-                aria-label="Move left"
-                onPointerDown={(e) => { e.preventDefault(); dpadAction("left"); }}
-              >
-                ←
-              </button>
-              <button
-                className="te-db"
-                aria-label="Soft drop"
-                onPointerDown={(e) => { e.preventDefault(); dpadAction("down"); }}
-              >
-                ↓
-              </button>
-              <button
-                className="te-db"
-                aria-label="Move right"
-                onPointerDown={(e) => { e.preventDefault(); dpadAction("right"); }}
-              >
-                →
-              </button>
-            </div>
+            <button
+              className="te-db te-db-drop"
+              aria-label="Hard drop"
+              onPointerDown={(e) => { e.preventDefault(); dpadAction("hardDrop"); }}
+            >
+              ⤓
+            </button>
           </div>
         </div>
         <div className="te-right">

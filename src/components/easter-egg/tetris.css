@@ -7,6 +7,24 @@
   font-family: var(--font-space-grotesk), sans-serif;
 }
 
+@media (max-width: 520px), (pointer: coarse) {
+  .te-wrap {
+    gap: 12px;
+  }
+  .te-stage {
+    gap: 16px;
+  }
+  .te-left {
+    gap: 8px;
+  }
+  .te-stats {
+    gap: 24px;
+  }
+  .te-stats strong {
+    font-size: 18px;
+  }
+}
+
 .te-stats {
   display: flex;
   gap: 32px;
@@ -56,8 +74,11 @@
 
 .te-board {
   display: block;
-  max-width: calc(100vw - 48px);
+  width: auto;
   height: auto;
+  max-width: calc(100vw - 48px);
+  max-height: 55vh;
+  aspect-ratio: 1 / 2;
   border-radius: 8px;
 }
 
@@ -289,23 +310,36 @@
 }
 
 /* Mobile d-pad */
-.te-dpad {
+.te-controls {
   display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 48px;
   margin-top: 12px;
+  width: 100%;
 }
 
 @media (max-width: 520px), (pointer: coarse) {
-  .te-dpad {
+  .te-controls {
     display: flex;
   }
+}
+
+.te-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .te-drow {
   display: flex;
   gap: 4px;
+}
+
+.te-db-drop {
+  align-self: flex-end;
 }
 
 .te-db {
