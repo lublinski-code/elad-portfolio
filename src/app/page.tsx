@@ -1,3 +1,4 @@
+import Header from "@/components/sections/header";
 import Hi from "@/components/sections/hi";
 import Work from "@/components/sections/work";
 import Experience from "@/components/sections/experience";
@@ -23,6 +24,7 @@ export default function Home() {
         style={{ background: "var(--cream)" }}
       >
         <div className="flex flex-col gap-[8px] md:gap-[16px]">
+          <Header />
           <Hi />
           <Work />
           <Experience />
