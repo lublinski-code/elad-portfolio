@@ -21,7 +21,7 @@ export default function Footer() {
           className="font-mono font-normal text-[16px] leading-normal max-w-[259px] md:max-w-none md:text-right md:shrink-0"
           style={{ color: "rgba(0,0,0,0.5)" }}
         >
-          Designed and built by Elad Lublinski with Claude Code &copy;2026
+          Designed by Elad Lublinski, built using Claude Code &copy;2026
         </p>
       </div>
     </footer>

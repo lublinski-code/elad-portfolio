@@ -164,7 +164,6 @@ export default function SideNav() {
       >
         {sections.map((s) => {
           const isActive = s.id === activeId;
-          const isHome = s.id === "hi";
 
           return (
             <button
@@ -198,24 +197,29 @@ export default function SideNav() {
                 }}
               />
 
-              <span
-                className="block font-mono text-[11px] font-medium leading-normal"
-                style={{
-                  color: isActive ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)",
-                  transition: "color 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-                }}
-              >
-                {isHome ? "---" : "#"}
-              </span>
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="block font-mono text-[11px] font-medium leading-normal"
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    transition: "color 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  }}
+                />
+              )}
 
               <span
                 className="block font-mono text-[14px] font-normal leading-normal"
                 style={{
-                  color: isActive ? "var(--white)" : "var(--black)",
+                  color: isActive
+                    ? "var(--white)"
+                    : s.id === "contact"
+                      ? "var(--cherry)"
+                      : "var(--black)",
                   transition: "color 600ms cubic-bezier(0.34, 1.56, 0.64, 1)",
                 }}
               >
-                {isHome ? s.label : `/${s.label}`}
+                {s.label}
               </span>
 
               {s.id === "work" && isActive && pageTitle && (

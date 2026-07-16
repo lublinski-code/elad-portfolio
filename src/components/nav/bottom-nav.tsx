@@ -81,7 +81,6 @@ export default function BottomNav() {
       >
         {sections.map((s, i) => {
           const isActive = i === activeIndex;
-          const isHome = s.id === "hi";
 
           return (
             <button
@@ -118,11 +117,15 @@ export default function BottomNav() {
               <span
                 className="whitespace-nowrap font-mono text-[14px] font-normal leading-normal"
                 style={{
-                  color: isActive ? "var(--white)" : "var(--black)",
+                  color: isActive
+                    ? "var(--white)"
+                    : s.id === "contact"
+                      ? "var(--cherry)"
+                      : "var(--black)",
                   transition: "color 200ms ease",
                 }}
               >
-                {isHome ? `--- ${s.label}` : `/${s.label}`}
+                {s.label}
               </span>
             </button>
           );

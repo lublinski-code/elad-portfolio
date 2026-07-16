@@ -8,8 +8,8 @@ export default function Hi() {
     <SectionShell section={section}>
       {/* ── Mobile layout (< md) ──────────────────────────────────────────── */}
       <div
-        className="flex flex-col gap-[16px] py-[24px] md:hidden"
-        aria-label="Hi, I'm Elad — A Product Designer / AI Builder"
+        className="flex flex-col gap-[24px] py-[24px] md:hidden"
+        aria-label="Hi, I'm Elad — A Product Design Lead / Consultant. Validate Fast, Skip the Slop."
       >
         <Row mobile>
           <p className="heading-display" style={{ color: "var(--cream)" }}>
@@ -25,13 +25,13 @@ export default function Hi() {
         <HiDivider />
         <Row mobile>
           <p className="heading-display" style={{ color: "var(--cream)" }}>
-            Designer
+            Design Lead
           </p>
         </Row>
         <HiDivider />
         <Row mobile>
           <p className="heading-display" style={{ color: "var(--cream)" }}>
-            / AI Builder
+            / Consultant
           </p>
         </Row>
         <HiDivider />
@@ -42,19 +42,18 @@ export default function Hi() {
               fontWeight: 400,
               fontStyle: "italic",
               fontSize: "21px",
-              lineHeight: 1.69,
+              lineHeight: 1.3,
               color: "#ffffff",
             }}
           >
-            An AI-informed human who believes the how is easy, but the what and
-            the who are the real work.
+            Validate Fast, Skip the Slop
           </p>
         </Row>
       </div>
 
       {/* ── Tablet + Desktop layout (md+) ─────────────────────────────────── */}
       <div
-        className="hidden flex-col gap-[16px] py-[48px] md:flex"
+        className="hero-desktop hidden flex-col gap-[24px] py-[24px] md:flex"
         aria-hidden="true"
       >
         {/* Row 1: centered headline */}
@@ -76,13 +75,13 @@ export default function Hi() {
               fontFamily: "var(--font-jetbrains-mono), monospace",
               fontWeight: 400,
               fontStyle: "italic",
-              fontSize: "clamp(13px, 1.25vw, 18px)",
-              lineHeight: 1.69,
+              fontSize: "clamp(18px, 2vw, 38px)",
+              lineHeight: 1.3,
               color: "#ffffff",
             }}
           >
-            An AI-informed human who believes the how is easy, but the what and
-            the who are the real work.
+            <span className="block">Validate Fast,</span>
+            <span className="block">Skip the Slop</span>
           </p>
           <p
             className="heading-display shrink-0 text-right lg:ml-0 ml-auto"
@@ -98,18 +97,17 @@ export default function Hi() {
         <Row>
           <Spacer />
           <p className="heading-display" style={{ color: "var(--cream)" }}>
-            Designer
+            Design Lead
           </p>
           <Spacer />
         </Row>
 
         <HiDivider />
 
-        {/* Row 4: right-aligned */}
+        {/* Row 4: right-aligned, full width (long line wraps cleanly) */}
         <Row>
-          <Spacer />
-          <p className="heading-display text-right" style={{ color: "var(--cream)" }}>
-            / AI Builder
+          <p className="heading-display w-full text-right" style={{ color: "var(--cream)" }}>
+            / Consultant
           </p>
         </Row>
 
@@ -123,12 +121,11 @@ export default function Hi() {
                 fontWeight: 400,
                 fontStyle: "italic",
                 fontSize: "18px",
-                lineHeight: 1.69,
+                lineHeight: 1.3,
                 color: "#ffffff",
               }}
             >
-              An AI-informed human who believes the how is easy, but the what and
-              the who are the real work.
+              Validate Fast, Skip the Slop
             </p>
           </div>
         </div>

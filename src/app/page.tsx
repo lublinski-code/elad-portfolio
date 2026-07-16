@@ -1,5 +1,6 @@
-import Header from "@/components/sections/header";
 import Hi from "@/components/sections/hi";
+import CapabilitiesMarquee from "@/components/sections/capabilities-marquee";
+import ValueProp from "@/components/sections/value-prop";
 import Work from "@/components/sections/work";
 import Experience from "@/components/sections/experience";
 import About from "@/components/sections/about";
@@ -24,8 +25,9 @@ export default function Home() {
         style={{ background: "var(--cream)" }}
       >
         <div className="flex flex-col gap-[8px] md:gap-[16px]">
-          <Header />
           <Hi />
+          <CapabilitiesMarquee />
+          <ValueProp />
           <Work />
           <Experience />
           <About />
