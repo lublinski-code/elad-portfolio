@@ -157,7 +157,7 @@ function Scene({
     <svg
       ref={svgRef}
       viewBox={`0 0 ${D.w} ${D.h}`}
-      className="h-full w-full"
+      className="vpi-svg h-full w-full"
       fill="none"
       stroke={CHARCOAL}
       strokeWidth={STROKE}
@@ -180,19 +180,27 @@ function Scene({
 // leaves. The cluster circles never move.
 // ---------------------------------------------------------------------------
 const CIRCLES_01: { x: number; y: number; r: number }[] = [
-  { x: -87.7, y: 13.7, r: 9 },
-  { x: -51.3, y: -7.2, r: 9 },
-  { x: -39.9, y: 33.1, r: 7 },
-  { x: -11.6, y: 4.3, r: 9 },
-  { x: -11.7, y: -37.5, r: 7 },
-  { x: 20.4, y: -19.1, r: 9 },
-  { x: 31.2, y: 32.6, r: 9 },
+  { x: -101, y: 16, r: 9 },
+  { x: -57, y: -9, r: 9 },
+  { x: -44, y: 39, r: 7 },
+  { x: -10, y: 5, r: 9 },
+  { x: -10, y: -46, r: 7 },
+  { x: 29, y: -24, r: 9 },
+  { x: 42, y: 39, r: 9 },
 ];
-const GLASS_REST_01 = { x: 66, y: -18.6 }; // lens centre offset
+const GLASS_REST_01 = { x: 80, y: -30 }; // lens centre offset — clear of the cluster
 const LENS_R_01 = 20;
 const HIT_PAD_01 = 17;
-const COMP_H_01 = 84;
+const COMP_H_01 = 100;
 const TEXTBLOCK_01 = 52;
+
+// Card 01: hovering a circle fills it cherry; cherry rings then radiate out of it
+// like a radio broadcast. All circles stay static.
+const RIPPLE_COUNT_01 = 3; // concurrent rings
+const RIPPLE_START_R_01 = 11; // radius where each ring is born (just outside a dot)
+const RIPPLE_SPREAD_01 = 34; // how far each ring expands before it dies
+const RIPPLE_SPEED_01 = 0.007; // ring phase advance per frame
+const RIPPLE_EASE_01 = 0.12; // fade the whole effect in / out
 
 export function Illus01() {
   const enabled = useAnimateEnabled();
@@ -201,6 +209,8 @@ export function Illus01() {
   const groupRef = useRef<SVGGElement>(null);
   const glassRef = useRef<SVGGElement>(null);
   const circleRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const rippleGroupRef = useRef<SVGGElement>(null);
+  const rippleRefs = useRef<(SVGCircleElement | null)[]>([]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -217,6 +227,8 @@ export function Illus01() {
     const cur = { ...GLASS_REST_01 };
     const tgt = { ...GLASS_REST_01 };
     let activeIdx = -1;
+    let rippleT = 0; // ring phase clock
+    let rippleOp = 0; // eased 0→1 reveal of the ripple
 
     const placeGlass = (x: number, y: number) =>
       glass.setAttribute("transform", `translate(${x} ${y})`);
@@ -230,6 +242,7 @@ export function Illus01() {
         prev.style.transform = "scale(1)";
       }
       activeIdx = idx;
+      rippleT = 0; // restart the broadcast fresh from the newly focused circle
       const el = circleRefs.current[activeIdx];
       if (el) {
         el.setAttribute("fill", CHERRY);
@@ -272,7 +285,39 @@ export function Illus01() {
         setActive(-1);
       }
 
-      settled = !inside && Math.hypot(target.x - cur.x, target.y - cur.y) < 0.5;
+      // Ripple: cherry rings radiate out of the focused circle (radio broadcast).
+      // All circles stay static; only the ripple + the fill/scale change.
+      const focus = activeIdx >= 0 ? CIRCLES_01[activeIdx] : null;
+      let bgMoving = false;
+      const rg = rippleGroupRef.current;
+      if (rg) {
+        if (focus) {
+          rg.setAttribute("transform", `translate(${focus.x} ${focus.y})`);
+        }
+        rippleT += RIPPLE_SPEED_01;
+        if (rippleT >= 1) rippleT -= 1;
+        const opTarget = focus ? 1 : 0;
+        rippleOp += (opTarget - rippleOp) * RIPPLE_EASE_01;
+        rg.style.opacity = rippleOp.toFixed(3); // overall reveal, full cherry
+        for (let i = 0; i < RIPPLE_COUNT_01; i++) {
+          const el = rippleRefs.current[i];
+          if (!el) continue;
+          const ph = (rippleT + i / RIPPLE_COUNT_01) % 1;
+          el.setAttribute(
+            "r",
+            (RIPPLE_START_R_01 + ph * RIPPLE_SPREAD_01).toFixed(2),
+          );
+          // Born at full line width, thinning to 0 as it expands — the ring
+          // disappears by line width, not by colour opacity.
+          el.setAttribute("stroke-width", (STROKE * (1 - ph)).toFixed(3));
+        }
+        if (focus || rippleOp > 0.005) bgMoving = true;
+      }
+
+      settled =
+        !inside &&
+        Math.hypot(target.x - cur.x, target.y - cur.y) < 0.5 &&
+        !bgMoving;
       if (inside || !settled) {
         raf = requestAnimationFrame(frame);
       } else {
@@ -346,6 +391,27 @@ export function Illus01() {
         groupRef={groupRef}
         initial={initialTransform(COMP_H_01, TEXTBLOCK_01)}
       >
+        {/* Ripple rings — radiate from the focused circle, invisible at rest.
+            Rendered behind the cluster circles. */}
+        <g
+          ref={rippleGroupRef}
+          transform="translate(0 0)"
+          style={{ opacity: 0, willChange: "opacity, transform" }}
+        >
+          {Array.from({ length: RIPPLE_COUNT_01 }).map((_, i) => (
+            <circle
+              key={`r${i}`}
+              ref={(el) => {
+                rippleRefs.current[i] = el;
+              }}
+              cx={0}
+              cy={0}
+              r={RIPPLE_START_R_01}
+              stroke={CHERRY}
+              strokeWidth={STROKE}
+            />
+          ))}
+        </g>
         {CIRCLES_01.map((cc, i) => (
           <circle
             key={i}
@@ -387,12 +453,42 @@ const DIVIDER_Y_02 = -45;
 const DOT_Y_02 = -51;
 const DOTS_X_02 = [-90, -82, -74];
 const BTN_02 = { cx: -1, cy: 24, w: 88, h: 28 };
-const ARROW_REST_02 = { x: 92, y: 69 }; // arrow tip offset
+const ARROW_REST_02 = { x: 54, y: 42 }; // arrow tip offset — straddling the window's bottom edge
 // Arrow pointer with its tip at the group origin (0,0), ~25 x 38.
 const ARROW_PATH_02 = "M0 0 L0 34 L8 26 L13.5 38 L19 35 L13.5 23.5 L25 23.5 Z";
-const COMP_H_02 = 121;
+const COMP_H_02 = 140; // window + the cursor that hangs past its bottom edge
 const TEXTBLOCK_02 = 52;
-const BASE_02 = 0.72; // window reads too large at 1:1 — scale the whole scene down
+const BASE_02 = 0.88; // sized to sit alongside cards 1 & 3
+
+// Background "window responds" layer: sine waves clipped to the window body,
+// scrolling right→left while the cursor is over the button (tied to `over`).
+const WINDOW_CLIP_ID_02 = "vp2-window-clip"; // single card-02 instance → stable
+const WAVE_WAVELENGTH_02 = 44; // vertical wavelength of each line's sway
+const WAVE_AMP_02 = 5; // horizontal sway amplitude
+const WAVE_WIDTH_02 = WIN_02.w * 2; // ~2× window width so scroll wraps seamlessly
+const WAVE_SPACING_02 = 22; // horizontal gap between the vertical lines
+const WAVE_SPEED_02 = 0.6; // px/frame leftward
+const WAVE_OPACITY_02 = 1; // full cherry while over the button
+const WAVE_STROKE_02 = STROKE; // match the illustration's line width
+const WAVE_EASE_02 = 0.12; // opacity ease factor
+
+/** One vertical sine-wave line centred on xMid, spanning y[top, bottom]. */
+function waveLinePath(
+  xMid: number,
+  amp: number,
+  wavelength: number,
+  yTop: number,
+  yBottom: number,
+): string {
+  const step = wavelength / 12;
+  const sway = (y: number) =>
+    xMid + amp * Math.sin((y / wavelength) * Math.PI * 2);
+  let d = `M ${sway(yTop).toFixed(2)} ${yTop.toFixed(2)}`;
+  for (let y = yTop + step; y <= yBottom; y += step) {
+    d += ` L ${sway(y).toFixed(2)} ${y.toFixed(2)}`;
+  }
+  return d;
+}
 
 export function Illus02() {
   const enabled = useAnimateEnabled();
@@ -401,6 +497,7 @@ export function Illus02() {
   const groupRef = useRef<SVGGElement>(null);
   const btnRef = useRef<SVGRectElement>(null);
   const arrowRef = useRef<SVGGElement>(null);
+  const waveRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -408,7 +505,8 @@ export function Illus02() {
     const group = groupRef.current;
     const btn = btnRef.current;
     const arrow = arrowRef.current;
-    if (!root || !svg || !group || !btn || !arrow) return;
+    const wave = waveRef.current;
+    if (!root || !svg || !group || !btn || !arrow || !wave) return;
 
     let raf = 0;
     let inside = false;
@@ -418,6 +516,8 @@ export function Illus02() {
     let rect = root.getBoundingClientRect();
     const cur = { ...ARROW_REST_02 };
     const tgt = { ...ARROW_REST_02 };
+    let waveOffset = 0; // scroll position, advances leftward while inside
+    let waveOpacity = 0; // eased reveal, driven by `over`
 
     const placeArrow = (x: number, y: number) =>
       arrow.setAttribute("transform", `translate(${x} ${y})`);
@@ -456,7 +556,22 @@ export function Illus02() {
         setOver(false);
       }
 
-      settled = !inside && Math.hypot(target.x - cur.x, target.y - cur.y) < 0.5;
+      // Background: scroll the wave pattern while the pointer is inside; reveal
+      // it (ease opacity) only while the arrow is over the button.
+      if (inside) {
+        waveOffset -= WAVE_SPEED_02;
+        if (waveOffset <= -WAVE_SPACING_02) waveOffset += WAVE_SPACING_02;
+        wave.setAttribute("transform", `translate(${waveOffset.toFixed(2)} 0)`);
+      }
+      const waveTarget = over ? WAVE_OPACITY_02 : 0;
+      waveOpacity += (waveTarget - waveOpacity) * WAVE_EASE_02;
+      wave.style.opacity = waveOpacity.toFixed(3);
+      const waveSettling = Math.abs(waveTarget - waveOpacity) > 0.005;
+
+      settled =
+        !inside &&
+        Math.hypot(target.x - cur.x, target.y - cur.y) < 0.5 &&
+        !waveSettling;
       if (inside || !settled) {
         raf = requestAnimationFrame(frame);
       } else {
@@ -543,6 +658,40 @@ export function Illus02() {
           x2={WIN_02.w / 2}
           y2={DIVIDER_Y_02}
         />
+        {/* Background: scrolling wave pattern clipped to the window body,
+            behind the dots / button / arrow, opacity 0 at rest. */}
+        <clipPath id={WINDOW_CLIP_ID_02}>
+          <rect
+            x={-WIN_02.w / 2}
+            y={DIVIDER_Y_02}
+            width={WIN_02.w}
+            height={WIN_02.h / 2 - DIVIDER_Y_02}
+          />
+        </clipPath>
+        <g clipPath={`url(#${WINDOW_CLIP_ID_02})`}>
+          <g
+            ref={waveRef}
+            style={{ opacity: 0, willChange: "opacity, transform" }}
+          >
+            {Array.from({
+              length: Math.ceil(WAVE_WIDTH_02 / WAVE_SPACING_02) + 1,
+            }).map((_, i) => (
+              <path
+                key={i}
+                d={waveLinePath(
+                  -WAVE_WIDTH_02 / 2 + i * WAVE_SPACING_02,
+                  WAVE_AMP_02,
+                  WAVE_WAVELENGTH_02,
+                  DIVIDER_Y_02,
+                  WIN_02.h / 2,
+                )}
+                fill="none"
+                stroke={CHERRY}
+                strokeWidth={WAVE_STROKE_02}
+              />
+            ))}
+          </g>
+        </g>
         {DOTS_X_02.map((x, i) => (
           <circle
             key={i}
@@ -565,6 +714,7 @@ export function Illus02() {
         <g
           ref={arrowRef}
           transform={`translate(${ARROW_REST_02.x} ${ARROW_REST_02.y})`}
+          stroke={CHARCOAL}
           style={{ willChange: "transform" }}
         >
           <path d={ARROW_PATH_02} fill={CREAM} />

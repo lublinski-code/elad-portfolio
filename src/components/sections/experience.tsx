@@ -106,7 +106,17 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
   const panelId = `exp-${entry.id}-panel`;
 
   return (
-    <div className="exp-card rounded-[16px] p-[24px] flex flex-row gap-[32px] items-start">
+    <div className="exp-card-wrapper relative">
+      {/* Cream bevel — revealed when the card lifts on hover (like Work / Contact) */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 rounded-[18px]"
+        style={{ background: "var(--cream)" }}
+      />
+      <div
+        className="exp-card relative cursor-pointer rounded-[16px] p-[24px] flex flex-row gap-[32px] items-start"
+        onClick={() => setOpen((v) => !v)}
+      >
       {/* Timeline column — pure CSS, no image. paddingTop centers the dot on the
           title row: half the title's line box (0.6 × font-size) minus half the dot. */}
       <div
@@ -136,55 +146,39 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
           id={headerId}
           aria-expanded={open}
           aria-controls={panelId}
-          onClick={() => setOpen((v) => !v)}
-          className="exp-toggle w-full text-left flex flex-col gap-[16px]"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((v) => !v);
+          }}
+          className="exp-toggle w-full text-left flex flex-row items-center gap-[24px]"
         >
-          {/* Title row */}
-          <span className="flex flex-row items-center gap-[24px]">
-            <span
-              className="font-mono font-normal whitespace-nowrap shrink-0"
-              style={{
-                fontSize: "clamp(24px, 3.2vw, 40px)",
-                color: "var(--cherry)",
-                lineHeight: "1.2",
-              }}
-            >
-              {entry.years}
+          <span className="flex-1 min-w-0 flex flex-col gap-[16px]">
+            {/* Title row */}
+            <span className="flex flex-row items-center gap-[24px]">
+              <span
+                className="font-mono font-normal whitespace-nowrap shrink-0"
+                style={{
+                  fontSize: "clamp(24px, 3.2vw, 40px)",
+                  color: "var(--cherry)",
+                  lineHeight: "1.2",
+                }}
+              >
+                {entry.years}
+              </span>
+              <span
+                className="font-sans font-medium min-w-0"
+                style={{
+                  fontSize: "clamp(24px, 3.2vw, 40px)",
+                  color: "rgba(255,255,255,0.9)",
+                  lineHeight: "1.2",
+                }}
+              >
+                {entry.company}
+              </span>
             </span>
-            <span
-              className="font-sans font-medium min-w-0"
-              style={{
-                fontSize: "clamp(24px, 3.2vw, 40px)",
-                color: "rgba(255,255,255,0.9)",
-                lineHeight: "1.2",
-              }}
-            >
-              {entry.company}
-            </span>
-            <svg
-              className="exp-chevron ml-auto shrink-0"
-              width={24}
-              height={24}
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              style={{
-                color: "var(--cherry)",
-                transform: open ? "rotate(180deg)" : "rotate(0deg)",
-              }}
-            >
-              <path
-                d="M6 9l6 6 6-6"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
 
-          {/* Roles row */}
-          <span className="flex flex-row flex-wrap gap-[8px] items-baseline">
+            {/* Roles row */}
+            <span className="flex flex-row flex-wrap gap-[8px] items-baseline">
             {entry.roles.map((role, i) => (
               <Fragment key={role}>
                 {i > 0 && (
@@ -211,7 +205,28 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
                 </span>
               </Fragment>
             ))}
+            </span>
           </span>
+          <svg
+            className="exp-chevron shrink-0"
+            width={24}
+            height={24}
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+            style={{
+              color: "var(--cherry)",
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          >
+            <path
+              d="M6 9l6 6 6-6"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
 
         {/* Body panel — grid-rows expand/collapse */}
@@ -246,6 +261,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
             </ul>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

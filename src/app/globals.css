@@ -157,11 +157,13 @@ body {
 }
 
 /* ── Experience accordion ── */
-/* Card surface: charcoal → coal on hover, no border in any state. */
+/* Card surface: charcoal, no border. On hover the card lifts up-right to
+   reveal the cream bevel behind it (same model as Work / Contact). */
 .exp-card {
   background: var(--charcoal);
 }
-.exp-card:hover {
+.exp-card-wrapper:hover .exp-card {
+  transform: translate(8px, -8px);
   background: var(--coal);
 }
 
@@ -193,7 +195,9 @@ body {
    instant chevron flip, instant hover color. */
 @media (prefers-reduced-motion: no-preference) {
   .exp-card {
-    transition: background-color 120ms cubic-bezier(0.32, 0.72, 0, 1);
+    transition:
+      transform 200ms cubic-bezier(0.32, 0.72, 0, 1),
+      background-color 200ms cubic-bezier(0.32, 0.72, 0, 1);
   }
   .exp-panel {
     transition: grid-template-rows 300ms cubic-bezier(0.32, 0.72, 0, 1);
@@ -206,6 +210,19 @@ body {
   .exp-chevron {
     transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
   }
+}
+
+/* Reduced motion → no lift (mirrors Work / Contact). */
+@media (prefers-reduced-motion: reduce) {
+  .exp-card-wrapper:hover .exp-card {
+    transform: none;
+  }
+}
+
+/* Value-prop illustrations: constant on-screen stroke regardless of the per-card
+   composition scale, so line weight reads the same across cards 1 / 2 / 3. */
+.vpi-svg :where(circle, line, rect, path) {
+  vector-effect: non-scaling-stroke;
 }
 
 /* Hide scrollbar on horizontal nav strips */
