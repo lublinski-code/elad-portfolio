@@ -24,10 +24,12 @@ export default function Home() {
         "
         style={{ background: "var(--cream)" }}
       >
-        <div className="flex flex-col gap-[8px] md:gap-[16px]">
-          <Hi />
-          <CapabilitiesMarquee />
-          <ValueProp />
+        <div className="flex flex-col gap-[24px] md:gap-[48px]">
+          <div className="flex flex-col gap-[8px] md:gap-[16px]">
+            <Hi />
+            <CapabilitiesMarquee />
+            <ValueProp />
+          </div>
           <Work />
           <Experience />
           <About />

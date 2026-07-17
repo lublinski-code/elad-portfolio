@@ -6,7 +6,7 @@
 
 /* Card — slides on hover to reveal bevel */
 .work-card {
-  background: var(--coal);
+  background: var(--charcoal);
   transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 

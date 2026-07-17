@@ -25,13 +25,13 @@ export default function WorkCard({ work }: { work: WorkMeta }) {
     >
       {/* Bevel — sits at resting position, revealed when card lifts */}
       <div
-        className="absolute inset-0 rounded-[16px]"
+        className="absolute inset-0 rounded-[24px]"
         style={{ background: vivid }}
         aria-hidden="true"
       />
       <Link
         href={`/work/${work.slug}`}
-        className="work-card group relative block rounded-[16px] p-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--coal)]"
+        className="work-card group relative block rounded-[24px] p-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--charcoal)]"
       >
         {/* Desktop: single row. Mobile: vertical stack */}
         <div className="flex flex-col items-start gap-[24px] md:flex-row">
@@ -73,8 +73,7 @@ export default function WorkCard({ work }: { work: WorkMeta }) {
             </div>
           </div>
 
-          {/* Spacer + arrow (desktop only, spacer hidden at mid-widths) */}
-          <div className="hidden w-[310px] shrink-0 xl:block" aria-hidden="true" />
+          {/* Arrow (desktop only) */}
           <svg
             width="24"
             height="24"

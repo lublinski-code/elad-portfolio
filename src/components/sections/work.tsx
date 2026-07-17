@@ -11,28 +11,29 @@ export default async function Work() {
   const caseStudies = items.filter((w) => w.category === "Case Study");
 
   return (
-    <section
-      id="work"
-      className="flex flex-col overflow-hidden rounded-[24px]"
-      style={{ background: "var(--charcoal)" }}
-    >
-      {/* Header */}
-      <div className="px-[24px] pt-[24px] pb-[48px] md:px-[48px] md:pt-[48px] md:pb-[48px]">
-        <p className="heading-display w-full" style={{ color: "var(--cream)" }}>
-          Work
-        </p>
+    <section id="work" className="flex flex-col gap-[16px] md:gap-[24px]">
+      {/* Charcoal headline card */}
+      <div
+        className="rounded-[24px] py-[24px] md:py-[48px]"
+        style={{ background: "var(--charcoal)" }}
+      >
+        <div className="px-[48px]">
+          <p className="heading-section w-full" style={{ color: "var(--cream)" }}>
+            Work
+          </p>
+        </div>
       </div>
 
       {/* Projects group */}
       {projects.length > 0 && (
-        <div className="flex flex-col gap-[8px] px-[24px] py-[24px] md:gap-[24px] md:px-[48px] md:py-[48px] lg:gap-[16px]">
+        <div className="flex flex-col gap-[16px]">
           <p
             className="font-mono text-[24px] font-light italic md:text-[32px]"
             style={{ color: "var(--cherry)" }}
           >
             Projects
           </p>
-          <div className="flex flex-col gap-[8px] md:gap-[16px] lg:gap-[24px]">
+          <div className="flex flex-col gap-[16px]">
             {projects.map((work) => (
               <WorkCard key={work.slug} work={work} />
             ))}
@@ -42,14 +43,14 @@ export default async function Work() {
 
       {/* Case Studies group */}
       {caseStudies.length > 0 && (
-        <div className="flex flex-col gap-[8px] px-[24px] py-[24px] md:gap-[24px] md:px-[48px] md:py-[48px] lg:gap-[16px]">
+        <div className="flex flex-col gap-[16px]">
           <p
             className="font-mono text-[24px] font-light italic md:text-[32px]"
             style={{ color: "var(--cherry)" }}
           >
             Case Studies
           </p>
-          <div className="flex flex-col gap-[8px] md:gap-[16px] lg:gap-[24px]">
+          <div className="flex flex-col gap-[16px]">
             {caseStudies.map((work) => (
               <WorkCard key={work.slug} work={work} />
             ))}
@@ -58,7 +59,7 @@ export default async function Work() {
       )}
 
       {/* Other Design Samples */}
-      <div className="px-[24px] py-[24px] md:px-[48px] md:py-[48px]">
+      <div>
         <ExternalLinkButton
           link={{
             label: "Other Design Samples",

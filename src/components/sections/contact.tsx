@@ -67,17 +67,10 @@ export default function Contact() {
     >
       {/* Header */}
       <div className="px-[24px] pt-[24px] md:px-[48px] md:pt-[48px]">
-        <p className="heading-display w-full" style={{ color: "var(--cream)" }}>
+        <p className="heading-section w-full" style={{ color: "var(--cream)" }}>
           Contact
         </p>
       </div>
-
-      {/* Divider */}
-      <div
-        aria-hidden="true"
-        className="mt-[24px] h-px w-full shrink-0 md:mt-[48px]"
-        style={{ background: "rgba(255,255,255,0.2)" }}
-      />
 
       {/* Buttons */}
       <div className="px-[24px] py-[24px] md:px-[48px] md:py-[48px]">
