@@ -162,9 +162,12 @@ body {
 .exp-card {
   background: var(--charcoal);
 }
-.exp-card-wrapper:hover .exp-card {
-  transform: translate(8px, -8px);
-  background: var(--coal);
+/* Lift + coal hover only on md+ (pointer devices); mobile is tap open/close. */
+@media (min-width: 768px) {
+  .exp-card-wrapper:hover .exp-card {
+    transform: translate(8px, -8px);
+    background: var(--coal);
+  }
 }
 
 /* Cherry focus ring on the toggle — reuses the global :focus-visible

@@ -114,10 +114,10 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
         style={{ background: "var(--cream)" }}
       />
       <div className="exp-card relative rounded-[16px] p-[24px] flex flex-row gap-[32px] items-start">
-      {/* Timeline column — pure CSS, no image. paddingTop centers the dot on the
+      {/* Timeline column — hidden on mobile. paddingTop centers the dot on the
           title row: half the title's line box (0.6 × font-size) minus half the dot. */}
       <div
-        className="flex flex-col items-center self-stretch shrink-0 w-[16px]"
+        className="hidden md:flex flex-col items-center self-stretch shrink-0 w-[16px]"
         style={{ paddingTop: "calc(0.6 * clamp(24px, 3.2vw, 40px) - 8px)" }}
       >
         <span
@@ -147,8 +147,9 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
           className="exp-toggle w-full text-left flex flex-row items-center gap-[24px]"
         >
           <span className="flex-1 min-w-0 flex flex-col gap-[16px]">
-            {/* Title row */}
-            <span className="flex flex-row items-center gap-[24px]">
+            {/* Title row: date / company stacked on mobile; side-by-side on md+
+                where a long company wraps to its own line below the date. */}
+            <span className="flex flex-col gap-[8px] md:flex-row md:flex-wrap md:items-baseline md:gap-x-[24px] md:gap-y-[8px]">
               <span
                 className="font-mono font-normal whitespace-nowrap shrink-0"
                 style={{
@@ -160,7 +161,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
                 {entry.years}
               </span>
               <span
-                className="font-sans font-medium min-w-0"
+                className="font-sans font-medium shrink-0 max-w-full"
                 style={{
                   fontSize: "clamp(24px, 3.2vw, 40px)",
                   color: "rgba(255,255,255,0.9)",
