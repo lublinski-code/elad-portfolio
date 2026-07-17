@@ -6,6 +6,11 @@ export default function Hi() {
 
   return (
     <SectionShell section={section}>
+      {/* Single accessible page heading (the giant display rows are decorative) */}
+      <h1 className="sr-only">
+        Hi, I&apos;m Elad — A Product Design Lead / Consultant. Validate Fast,
+        Skip the Slop.
+      </h1>
       {/* ── Mobile layout (< md) ──────────────────────────────────────────── */}
       <div
         className="flex flex-col gap-[24px] py-[24px] md:hidden"
@@ -53,7 +58,7 @@ export default function Hi() {
 
       {/* ── Tablet + Desktop layout (md+) ─────────────────────────────────── */}
       <div
-        className="hero-desktop hidden flex-col gap-[24px] py-[24px] md:flex"
+        className="hero-desktop hidden flex-col gap-[32px] py-[32px] md:flex"
         aria-hidden="true"
       >
         {/* Row 1: centered headline */}

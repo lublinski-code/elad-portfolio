@@ -83,7 +83,7 @@ export default function CapabilitiesMarquee() {
         {items.map((cap, i) => (
           <span
             key={i}
-            className="flex items-center whitespace-nowrap font-mono font-normal text-[14px] leading-[1.5] md:text-[16px]"
+            className="flex items-center whitespace-nowrap font-mono font-medium text-[14px] leading-[1.5] md:text-[16px]"
             style={{ color: "var(--cherry)" }}
           >
             {cap}

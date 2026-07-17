@@ -808,7 +808,7 @@ export function Illus03() {
 
       const targetSpeed = active ? ORBIT_SPEED_03 : 0;
       speed += (targetSpeed - speed) * ORBIT_ACCEL_03;
-      angle += speed;
+      angle = (angle + speed) % 360;
       orbit.setAttribute("transform", `rotate(${angle})`);
 
       if (inside || Math.abs(speed) > 0.005) {

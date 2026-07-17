@@ -18,9 +18,9 @@ export default async function Work() {
         style={{ background: "var(--charcoal)" }}
       >
         <div className="px-[48px]">
-          <p className="heading-section w-full" style={{ color: "var(--cream)" }}>
+          <h2 className="heading-section w-full" style={{ color: "var(--cream)" }}>
             Work
-          </p>
+          </h2>
         </div>
       </div>
 

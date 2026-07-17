@@ -17,6 +17,7 @@ export default function Home() {
         className="
           min-h-screen
           animate-[pageEnter_600ms_cubic-bezier(0.32,0.72,0,1)_both]
+          motion-reduce:animate-none
           p-[8px]
           pb-[calc(72px+env(safe-area-inset-bottom))]
           md:pt-[24px] md:pr-[24px] md:pb-[16px] md:pl-[8px]

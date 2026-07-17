@@ -113,10 +113,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
         className="absolute inset-0 rounded-[18px]"
         style={{ background: "var(--cream)" }}
       />
-      <div
-        className="exp-card relative cursor-pointer rounded-[16px] p-[24px] flex flex-row gap-[32px] items-start"
-        onClick={() => setOpen((v) => !v)}
-      >
+      <div className="exp-card relative rounded-[16px] p-[24px] flex flex-row gap-[32px] items-start">
       {/* Timeline column — pure CSS, no image. paddingTop centers the dot on the
           title row: half the title's line box (0.6 × font-size) minus half the dot. */}
       <div
@@ -146,10 +143,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
           id={headerId}
           aria-expanded={open}
           aria-controls={panelId}
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen((v) => !v);
-          }}
+          onClick={() => setOpen((v) => !v)}
           className="exp-toggle w-full text-left flex flex-row items-center gap-[24px]"
         >
           <span className="flex-1 min-w-0 flex flex-col gap-[16px]">
@@ -234,6 +228,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
           id={panelId}
           role="region"
           aria-labelledby={headerId}
+          aria-hidden={!open}
           className="exp-panel"
           data-open={open}
         >
@@ -276,9 +271,9 @@ export default function Experience() {
     >
       {/* Header — matches About/Contact: pt/pb 24 mobile, 48 desktop */}
       <div className="px-[24px] pt-[24px] pb-[24px] md:px-[48px] md:pt-[48px] md:pb-[48px]">
-        <p className="heading-section w-full" style={{ color: "var(--cream)" }}>
+        <h2 className="heading-section w-full" style={{ color: "var(--cream)" }}>
           Experience
-        </p>
+        </h2>
       </div>
 
       {/* Card list */}

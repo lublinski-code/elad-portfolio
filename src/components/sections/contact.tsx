@@ -67,9 +67,9 @@ export default function Contact() {
     >
       {/* Header */}
       <div className="px-[24px] pt-[24px] md:px-[48px] md:pt-[48px]">
-        <p className="heading-section w-full" style={{ color: "var(--cream)" }}>
+        <h2 className="heading-section w-full" style={{ color: "var(--cream)" }}>
           Contact
-        </p>
+        </h2>
       </div>
 
       {/* Buttons */}

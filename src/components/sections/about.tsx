@@ -15,9 +15,9 @@ export default function About() {
       {/* Header — pb matches Contact's title→divider gap so both headers are
           the same height (top edge → content start), even without a divider. */}
       <div className="px-[24px] pt-[24px] pb-[24px] md:px-[48px] md:pt-[48px] md:pb-[48px]">
-        <p className="heading-section w-full" style={{ color: "var(--cream)" }}>
+        <h2 className="heading-section w-full" style={{ color: "var(--cream)" }}>
           About
-        </p>
+        </h2>
       </div>
 
       {/* Body */}
