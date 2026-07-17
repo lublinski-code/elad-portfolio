@@ -7,6 +7,7 @@ type ContactLink = {
   label: string;
   href: string;
   icon: LucideIcon;
+  download?: string; // when set, the link downloads the file with this name
 };
 
 const links: ContactLink[] = [
@@ -27,8 +28,9 @@ const links: ContactLink[] = [
   },
   {
     label: "** Resume",
-    href: "https://drive.google.com/file/d/150b__XyOsv6pmDal5qJAQCv61HyOe2aG/view?usp=sharing",
+    href: "/Elad%20Lublinski%20CV%20Resume.pdf",
     icon: Download,
+    download: "Elad Lublinski - Resume.pdf",
   },
 ];
 
@@ -44,6 +46,7 @@ function ContactButton({ link }: { link: ContactLink }) {
       />
       <a
         href={link.href}
+        download={link.download}
         target={link.href.startsWith("http") ? "_blank" : undefined}
         rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
         className="contact-btn relative flex items-center gap-[16px] rounded-[16px] p-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cherry)]"
