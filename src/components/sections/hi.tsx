@@ -45,8 +45,8 @@ export default function Hi() {
             style={{
               fontFamily: "var(--font-jetbrains-mono), monospace",
               fontWeight: 400,
-              fontStyle: "italic",
-              fontSize: "21px",
+              fontStyle: "normal",
+              fontSize: "clamp(18px, 3vw, 28px)",
               lineHeight: 1.3,
               color: "#ffffff",
             }}
@@ -79,7 +79,7 @@ export default function Hi() {
             style={{
               fontFamily: "var(--font-jetbrains-mono), monospace",
               fontWeight: 400,
-              fontStyle: "italic",
+              fontStyle: "normal",
               fontSize: "clamp(18px, 2vw, 38px)",
               lineHeight: 1.3,
               color: "#ffffff",
@@ -119,13 +119,13 @@ export default function Hi() {
         {/* Tagline — shown below headings when not enough width (md–lg) */}
         <div className="lg:hidden">
           <HiDivider />
-          <div className="px-[48px] pt-[16px]">
+          <div className="px-[48px] pt-[32px]">
             <p
               style={{
                 fontFamily: "var(--font-jetbrains-mono), monospace",
                 fontWeight: 400,
-                fontStyle: "italic",
-                fontSize: "18px",
+                fontStyle: "normal",
+                fontSize: "clamp(18px, 3vw, 28px)",
                 lineHeight: 1.3,
                 color: "#ffffff",
               }}

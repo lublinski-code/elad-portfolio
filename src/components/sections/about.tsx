@@ -24,7 +24,7 @@ export default function About() {
       <div className="px-[24px] pb-[24px] md:px-[48px] md:pb-[48px]">
         <p
           className="font-sans font-normal leading-normal"
-          style={{ fontSize: "18px", color: "rgba(255,255,255,0.7)" }}
+          style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)" }}
         >
           {sentences.map((sentence, i) => (
             <span key={i} className="block">

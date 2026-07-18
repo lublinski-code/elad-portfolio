@@ -16,6 +16,7 @@ export default function Home() {
       <main
         className="
           min-h-screen
+          overflow-x-clip
           animate-[pageEnter_600ms_cubic-bezier(0.32,0.72,0,1)_both]
           motion-reduce:animate-none
           p-[8px]

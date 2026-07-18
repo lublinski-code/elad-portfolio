@@ -54,13 +54,18 @@ function computeCenter(
   numberBottom: number,
   textTop: number,
   compHeight: number,
+  compWidth: number,
   baseScale = 1,
 ): Center {
   const band = textTop - numberBottom;
+  // Fit to BOTH the height band and the card width so the scene shrinks to fit
+  // instead of getting clipped when the card gets narrow.
+  const heightScale = (band - 16) / compHeight;
+  const widthScale = (dims.w - 32) / compWidth;
   return {
     Cx: dims.w / 2,
     Cy: numberBottom + 0.45 * band,
-    s: clamp((band - 16) / compHeight, 0.62, 1) * baseScale,
+    s: clamp(Math.min(heightScale, widthScale), 0.4, 1) * baseScale,
   };
 }
 
@@ -68,6 +73,7 @@ function computeCenter(
 function measure(
   root: HTMLDivElement,
   compHeight: number,
+  compWidth: number,
   fallbackTextBlock: number,
   baseScale = 1,
 ): Center & { dims: { w: number; h: number } } {
@@ -84,13 +90,14 @@ function measure(
   }
   return {
     dims,
-    ...computeCenter(dims, numberBottom, textTop, compHeight, baseScale),
+    ...computeCenter(dims, numberBottom, textTop, compHeight, compWidth, baseScale),
   };
 }
 
 /** Deterministic transform for SSR + first client paint (no hydration diff). */
 function initialTransform(
   compHeight: number,
+  compWidth: number,
   fallbackTextBlock: number,
   baseScale = 1,
 ): string {
@@ -101,6 +108,7 @@ function initialTransform(
     numberBottom,
     textTop,
     compHeight,
+    compWidth,
     baseScale,
   );
   return `translate(${Cx} ${Cy}) scale(${s})`;
@@ -192,6 +200,7 @@ const GLASS_REST_01 = { x: 80, y: -30 }; // lens centre offset — clear of the 
 const LENS_R_01 = 20;
 const HIT_PAD_01 = 17;
 const COMP_H_01 = 100;
+const COMP_W_01 = 220; // static cluster + magnifier span
 const TEXTBLOCK_01 = 52;
 
 // Card 01: hovering a circle fills it cherry; cherry rings then radiate out of it
@@ -252,7 +261,7 @@ export function Illus01() {
     };
 
     const layout = () => {
-      const m = measure(root, COMP_H_01, TEXTBLOCK_01);
+      const m = measure(root, COMP_H_01, COMP_W_01, TEXTBLOCK_01);
       c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
       svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
@@ -389,7 +398,7 @@ export function Illus01() {
       <Scene
         svgRef={svgRef}
         groupRef={groupRef}
-        initial={initialTransform(COMP_H_01, TEXTBLOCK_01)}
+        initial={initialTransform(COMP_H_01, COMP_W_01, TEXTBLOCK_01)}
       >
         {/* Ripple rings — radiate from the focused circle, invisible at rest.
             Rendered behind the cluster circles. */}
@@ -457,6 +466,7 @@ const ARROW_REST_02 = { x: 54, y: 42 }; // arrow tip offset — straddling the w
 // Arrow pointer with its tip at the group origin (0,0), ~25 x 38.
 const ARROW_PATH_02 = "M0 0 L0 34 L8 26 L13.5 38 L19 35 L13.5 23.5 L25 23.5 Z";
 const COMP_H_02 = 140; // window + the cursor that hangs past its bottom edge
+const COMP_W_02 = 200; // window width
 const TEXTBLOCK_02 = 52;
 const BASE_02 = 0.88; // sized to sit alongside cards 1 & 3
 
@@ -530,7 +540,7 @@ export function Illus02() {
     };
 
     const layout = () => {
-      const m = measure(root, COMP_H_02, TEXTBLOCK_02, BASE_02);
+      const m = measure(root, COMP_H_02, COMP_W_02, TEXTBLOCK_02, BASE_02);
       c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
       svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
@@ -643,7 +653,7 @@ export function Illus02() {
       <Scene
         svgRef={svgRef}
         groupRef={groupRef}
-        initial={initialTransform(COMP_H_02, TEXTBLOCK_02, BASE_02)}
+        initial={initialTransform(COMP_H_02, COMP_W_02, TEXTBLOCK_02, BASE_02)}
       >
         <rect
           x={-WIN_02.w / 2}
@@ -747,6 +757,7 @@ const CURSOR_RING_R_03 = 12.5;
 const ORBIT_SPEED_03 = 0.6; // target deg/frame
 const ORBIT_ACCEL_03 = 0.04; // ease-in/out of the spin
 const COMP_H_03 = 154;
+const COMP_W_03 = 154;
 const TEXTBLOCK_03 = 78;
 
 export function Illus03() {
@@ -791,7 +802,7 @@ export function Illus03() {
     };
 
     const layout = () => {
-      const m = measure(root, COMP_H_03, TEXTBLOCK_03);
+      const m = measure(root, COMP_H_03, COMP_W_03, TEXTBLOCK_03);
       c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
       svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
@@ -882,7 +893,7 @@ export function Illus03() {
       <Scene
         svgRef={svgRef}
         groupRef={groupRef}
-        initial={initialTransform(COMP_H_03, TEXTBLOCK_03)}
+        initial={initialTransform(COMP_H_03, COMP_W_03, TEXTBLOCK_03)}
       >
         <g ref={orbitRef}>
           {OUTER_03.map((o, i) => {

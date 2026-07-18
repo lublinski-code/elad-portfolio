@@ -180,7 +180,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
                   <span
                     className="font-mono font-light"
                     style={{
-                      fontSize: "clamp(16px, 1.6vw, 24px)",
+                      fontSize: "clamp(22px, 2.2vw, 28px)",
                       color: "var(--cherry)",
                       lineHeight: "1.2",
                     }}
@@ -191,7 +191,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
                 <span
                   className="font-sans font-normal"
                   style={{
-                    fontSize: "clamp(16px, 1.6vw, 24px)",
+                    fontSize: "clamp(22px, 2.2vw, 28px)",
                     color: "rgba(255,255,255,0.5)",
                     lineHeight: "1.2",
                   }}
@@ -243,7 +243,7 @@ function ExperienceCard({ entry }: { entry: ExperienceEntry }) {
                     marginInlineStart: "24px",
                     marginBottom: "16px",
                     fontSize: "16px",
-                    lineHeight: "normal",
+                    lineHeight: "1.5",
                     color: "rgba(255,255,255,0.7)",
                     fontFamily: "var(--font-space-grotesk), sans-serif",
                   }}

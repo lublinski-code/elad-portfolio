@@ -28,8 +28,8 @@ export default async function Work() {
       {projects.length > 0 && (
         <div className="flex flex-col gap-[16px]">
           <p
-            className="font-mono text-[24px] font-light italic md:text-[32px]"
-            style={{ color: "var(--cherry)" }}
+            className="font-mono font-light"
+            style={{ color: "var(--cherry)", fontSize: "clamp(24px, 3.2vw, 40px)" }}
           >
             Projects
           </p>
@@ -45,8 +45,8 @@ export default async function Work() {
       {caseStudies.length > 0 && (
         <div className="flex flex-col gap-[16px]">
           <p
-            className="font-mono text-[24px] font-light italic md:text-[32px]"
-            style={{ color: "var(--cherry)" }}
+            className="font-mono font-light"
+            style={{ color: "var(--cherry)", fontSize: "clamp(24px, 3.2vw, 40px)" }}
           >
             Case Studies
           </p>

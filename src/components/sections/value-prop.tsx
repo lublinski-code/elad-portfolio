@@ -36,7 +36,7 @@ export default function ValueProp() {
 
           <span
             data-vp-number
-            className="pointer-events-none absolute left-[24px] top-[24px] z-10 font-mono font-medium text-[16px] leading-none text-[var(--cherry)]"
+            className="pointer-events-none absolute left-[24px] top-[24px] z-10 font-mono font-medium text-[16px] leading-none text-[var(--cherry)] md:text-[18px]"
           >
             {n}
           </span>
