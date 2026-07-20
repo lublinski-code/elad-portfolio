@@ -754,7 +754,7 @@ const OUTER_03: { x: number; y: number }[] = [
   { x: 44.5, y: -44.5 },
 ];
 const CURSOR_RING_R_03 = 12.5;
-const ORBIT_SPEED_03 = 0.6; // target deg/frame
+const ORBIT_SPEED_03 = 0.85; // target deg/frame
 const ORBIT_ACCEL_03 = 0.04; // ease-in/out of the spin
 const COMP_H_03 = 154;
 const COMP_W_03 = 154;

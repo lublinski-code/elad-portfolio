@@ -9,6 +9,8 @@ const capabilities: string[] = [
   "Product-team output, solo",
   "Claude Code",
   "Prototypes in real code",
+  "Design-to-Code Alignment",
+  "Mentoring",
 ];
 
 // Speed is defined in pixels-per-second so longer copy doesn't scroll faster —
