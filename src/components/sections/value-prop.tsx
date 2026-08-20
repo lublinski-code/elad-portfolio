@@ -4,17 +4,17 @@ import { Illus01, Illus02, Illus03 } from "./value-prop-illustrations";
 const items: { n: string; text: string; Illus: ComponentType }[] = [
   {
     n: "01",
-    text: "Discover what to solve before what to build",
+    text: "Build the AI-native design system and workflow, from nothing",
     Illus: Illus01,
   },
   {
     n: "02",
-    text: "User testing with real code",
+    text: "Bring structure to teams stuck on ad hoc decisions",
     Illus: Illus02,
   },
   {
     n: "03",
-    text: "Set up an AI workflow around how your team works",
+    text: "Tie user discovery to real business goals",
     Illus: Illus03,
   },
 ];

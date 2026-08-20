@@ -15,8 +15,8 @@ const entries: ExperienceEntry[] = [
   {
     id: "freelance",
     years: "Present",
-    company: "Freelance",
-    roles: ["Product Design Lead", "Consultant", "AI Expert"],
+    company: "Elad Lublinski Studio",
+    roles: ["Product Design Lead", "Fractional Head of Product Design"],
     body: [
       {
         label: "Design Systems & AI Migration:",
@@ -27,8 +27,8 @@ const entries: ExperienceEntry[] = [
         text: "Configured the system for Figma Code Connect and aligned it to an AI infrastructure layer, completely eliminating the drift between design mockups and production codebases.",
       },
       {
-        label: "AI Integration Consulting:",
-        text: "Partnered with product design teams to audit their current execution layers, introducing practical AI-native workflows that accelerate prototyping and buy back time for continuous customer discovery.",
+        label: "AI-Native Workflow Setup:",
+        text: "Audited the client's design execution process and introduced AI-native prototyping practices, cutting production time without cutting into discovery.",
       },
     ],
   },
@@ -44,7 +44,7 @@ const entries: ExperienceEntry[] = [
     body: [
       {
         label: "Platform Strategy:",
-        text: "Designed the core architecture for the Sponsorships Platform, mapping distinct, complex workflows for creators, advertisers, and internal operations to ensure platform cohesion.",
+        text: "Designed the core architecture for the Sponsorships Platform, mapping distinct, complex workflows for creators, advertisers, and internal operations.",
       },
       {
         label: "Discovery & Delivery:",
@@ -52,7 +52,7 @@ const entries: ExperienceEntry[] = [
       },
       {
         label: "Cross-Functional Systems:",
-        text: "Built and governed the company's foundational design system to support multi-sided SaaS surfaces, drastically reducing engineering dependencies and design bottlenecks during deployment.",
+        text: "Built and governed the company's foundational design system to support multi-sided SaaS surfaces, reducing engineering dependencies and design bottlenecks during deployment.",
       },
       {
         label: "Founding Designer (0-to-1):",
@@ -94,7 +94,7 @@ const entries: ExperienceEntry[] = [
     ],
     body: [
       {
-        text: "Executed digital campaigns, brand systems, and interactive experiences for major clients. Established deep expertise in visual hierarchy, information density, and user psychology that forms the baseline of my current product architecture work.",
+        text: "Executed digital campaigns, brand systems, and interactive experiences for major clients across advertising and brand strategy firms.",
       },
     ],
   },

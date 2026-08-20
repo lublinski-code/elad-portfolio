@@ -8,13 +8,13 @@ export default function Hi() {
     <SectionShell section={section}>
       {/* Single accessible page heading (the giant display rows are decorative) */}
       <h1 className="sr-only">
-        Hi, I&apos;m Elad — A Product Design Lead / Consultant. Validate Fast,
-        Skip the Slop.
+        Hi, I&apos;m Elad. A Product Design Lead / Fractional Head of Product
+        Design.
       </h1>
       {/* ── Mobile layout (< md) ──────────────────────────────────────────── */}
       <div
         className="flex flex-col gap-[24px] py-[24px] md:hidden"
-        aria-label="Hi, I'm Elad — A Product Design Lead / Consultant. Validate Fast, Skip the Slop."
+        aria-label="Hi, I'm Elad. A Product Design Lead / Fractional Head of Product Design."
       >
         <Row mobile>
           <p className="heading-display" style={{ color: "var(--cream)" }}>
@@ -35,12 +35,6 @@ export default function Hi() {
         </Row>
         <HiDivider />
         <Row mobile>
-          <p className="heading-display" style={{ color: "var(--cream)" }}>
-            / Consultant
-          </p>
-        </Row>
-        <HiDivider />
-        <Row mobile>
           <p
             style={{
               fontFamily: "var(--font-jetbrains-mono), monospace",
@@ -51,7 +45,7 @@ export default function Hi() {
               color: "#ffffff",
             }}
           >
-            Validate Fast, Skip the Slop
+            / Fractional Head of Product Design.
           </p>
         </Row>
       </div>
@@ -72,7 +66,7 @@ export default function Hi() {
 
         <HiDivider />
 
-        {/* Row 2: tagline (lg+) + "A Product" */}
+        {/* Row 2: specialization line (lg+) + "A Product" */}
         <Row>
           <p
             className="hidden flex-1 min-w-0 lg:block"
@@ -85,8 +79,7 @@ export default function Hi() {
               color: "#ffffff",
             }}
           >
-            <span className="block">Validate Fast,</span>
-            <span className="block">Skip the Slop</span>
+            / Fractional Head of Product Design.
           </p>
           <p
             className="heading-display shrink-0 text-right lg:ml-0 ml-auto"
@@ -102,21 +95,21 @@ export default function Hi() {
         <Row>
           <Spacer />
           <p className="heading-display" style={{ color: "var(--cream)" }}>
-            Design Lead
+            Design
           </p>
           <Spacer />
         </Row>
 
         <HiDivider />
 
-        {/* Row 4: right-aligned, full width (long line wraps cleanly) */}
+        {/* Row 4: right-aligned, full width */}
         <Row>
           <p className="heading-display w-full text-right" style={{ color: "var(--cream)" }}>
-            / Consultant
+            Lead
           </p>
         </Row>
 
-        {/* Tagline — shown below headings when not enough width (md–lg) */}
+        {/* Specialization — shown below headings when not enough width (md–lg) */}
         <div className="lg:hidden">
           <HiDivider />
           <div className="px-[48px] pt-[32px]">
@@ -130,7 +123,7 @@ export default function Hi() {
                 color: "#ffffff",
               }}
             >
-              Validate Fast, Skip the Slop
+              / Fractional Head of Product Design.
             </p>
           </div>
         </div>

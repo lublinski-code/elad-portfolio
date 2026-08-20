@@ -19,10 +19,25 @@ const jetbrainsMono = JetBrains_Mono({
   style: ["normal", "italic"],
 });
 
+const TITLE = "Elad Lublinski - Product Design Lead / Fractional Head of Product Design";
+// Trimmed to ~155 chars so the positioning survives Google's snippet truncation.
+const DESCRIPTION =
+  "Fractional Head of Product Design. I build the design systems and AI-fluent workflows startups need, from zero-stage teams to teams scaling past ad hoc decisions.";
+
 export const metadata: Metadata = {
-  title: "Elad Lublinski - Product Designer",
-  description:
-    "AI-informed product designer with 12+ years crafting scalable systems for the creator economy, gaming, and fintech.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    type: "website",
+    siteName: "Elad Lublinski",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({
