@@ -28,9 +28,7 @@ export default function ValueProp() {
       {items.map(({ n, text, Illus }) => (
         <article
           key={n}
-          className={`vp-card relative overflow-hidden rounded-[24px] border border-[var(--cherry)] bg-[var(--cream)] md:min-h-[288px] lg:min-h-[320px] ${
-            n === "03" ? "min-h-[300px]" : "min-h-[240px]"
-          }`}
+          className="vp-card relative min-h-[260px] overflow-hidden rounded-[24px] border border-[var(--cherry)] bg-[var(--cream)] md:min-h-[288px] lg:min-h-[320px]"
         >
           <Illus />
 

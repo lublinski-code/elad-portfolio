@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Value-prop card illustrations. Each is a card-filling, cursor-driven scene.
  *
- * Every scene is a COMPLETE, legible static line drawing on its own — the
- * pointer interactivity is layered on top and is never required to read the
- * card. Interactivity is gated behind `(hover: hover) and (pointer: fine)` and
- * disabled under `prefers-reduced-motion: reduce`; on touch / no-hover / reduced
- * motion the static drawing renders and the OS cursor is never hidden.
+ * REST STATE CARRIES THE MESSAGE. Every scene is a complete, legible drawing of
+ * the RESOLVED idea — the system built, the structure in place, the two things
+ * tied together — because on touch there is no hover and the static drawing is
+ * all the card ever shows. The pointer interaction is a reward layered on top,
+ * never the thing that makes the card readable. Interactivity is gated behind
+ * `(hover: hover) and (pointer: fine)` and disabled under
+ * `prefers-reduced-motion: reduce`.
  *
  * Coordinate system: each SVG fills its container (h-full w-full) and its
  * viewBox is set to the container's measured pixel size, so 1 user unit === 1
@@ -36,11 +38,11 @@ const D = { w: 300, h: 288 };
 
 const STROKE = 2.5;
 const K = 0.22; // follow easing
-const EASE = "cubic-bezier(0.32,0.72,0,1)";
-const STATE_TRANSITION = `transform 150ms ${EASE}, fill 150ms ease, stroke 150ms ease`;
 
 const clamp = (v: number, lo: number, hi: number) =>
   Math.min(hi, Math.max(lo, v));
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 type Center = { Cx: number; Cy: number; s: number };
 
@@ -180,307 +182,34 @@ function Scene({
 }
 
 // ---------------------------------------------------------------------------
-// 01 — Discover what to solve before what to build.
-// Static: 7 outlined "problem" circles + a magnifier at rest, all offsets from
-// the composition center. Interactive: the OS cursor hides and the magnifier
-// BECOMES the cursor (lens centre = pointer, turns cherry). The nearest circle
-// within reach of the lens fills cherry + enlarges; it reverts when the lens
-// leaves. The cluster circles never move.
+// 01 — Build the AI-native design system and workflow, from nothing.
+// Rest: a finished product window — title bar, traffic dots, a real button.
+// The built thing, legible with no interaction at all. Interactive: the OS
+// cursor hides and the arrow becomes the pointer (tip = hotspot); driving it
+// onto the button fills the pill cherry and the window comes alive behind it.
 // ---------------------------------------------------------------------------
-const CIRCLES_01: { x: number; y: number; r: number }[] = [
-  { x: -101, y: 16, r: 9 },
-  { x: -57, y: -9, r: 9 },
-  { x: -44, y: 39, r: 7 },
-  { x: -10, y: 5, r: 9 },
-  { x: -10, y: -46, r: 7 },
-  { x: 29, y: -24, r: 9 },
-  { x: 42, y: 39, r: 9 },
-];
-const GLASS_REST_01 = { x: 80, y: -30 }; // lens centre offset — clear of the cluster
-const LENS_R_01 = 20;
-const HIT_PAD_01 = 17;
-const COMP_H_01 = 100;
-const COMP_W_01 = 220; // static cluster + magnifier span
-const TEXTBLOCK_01 = 52;
-
-// Card 01: hovering a circle fills it cherry; cherry rings then radiate out of it
-// like a radio broadcast. All circles stay static.
-const RIPPLE_COUNT_01 = 3; // concurrent rings
-const RIPPLE_START_R_01 = 11; // radius where each ring is born (just outside a dot)
-const RIPPLE_SPREAD_01 = 34; // how far each ring expands before it dies
-const RIPPLE_SPEED_01 = 0.007; // ring phase advance per frame
-const RIPPLE_EASE_01 = 0.12; // fade the whole effect in / out
-
-export function Illus01() {
-  const enabled = useAnimateEnabled();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const groupRef = useRef<SVGGElement>(null);
-  const glassRef = useRef<SVGGElement>(null);
-  const circleRefs = useRef<(SVGCircleElement | null)[]>([]);
-  const rippleGroupRef = useRef<SVGGElement>(null);
-  const rippleRefs = useRef<(SVGCircleElement | null)[]>([]);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    const svg = svgRef.current;
-    const group = groupRef.current;
-    const glass = glassRef.current;
-    if (!root || !svg || !group || !glass) return;
-
-    let raf = 0;
-    let inside = false;
-    let settled = true;
-    let c: Center = { Cx: D.w / 2, Cy: 0, s: 1 };
-    let rect = root.getBoundingClientRect();
-    const cur = { ...GLASS_REST_01 };
-    const tgt = { ...GLASS_REST_01 };
-    let activeIdx = -1;
-    let rippleT = 0; // ring phase clock
-    let rippleOp = 0; // eased 0→1 reveal of the ripple
-
-    const placeGlass = (x: number, y: number) =>
-      glass.setAttribute("transform", `translate(${x} ${y})`);
-
-    const setActive = (idx: number) => {
-      if (idx === activeIdx) return;
-      const prev = circleRefs.current[activeIdx];
-      if (prev) {
-        prev.setAttribute("fill", "none");
-        prev.setAttribute("stroke", CHARCOAL);
-        prev.style.transform = "scale(1)";
-      }
-      activeIdx = idx;
-      rippleT = 0; // restart the broadcast fresh from the newly focused circle
-      const el = circleRefs.current[activeIdx];
-      if (el) {
-        el.setAttribute("fill", CHERRY);
-        el.setAttribute("stroke", CHERRY);
-        el.style.transform = "scale(1.25)";
-      }
-    };
-
-    const layout = () => {
-      const m = measure(root, COMP_H_01, COMP_W_01, TEXTBLOCK_01);
-      c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
-      svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
-      group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
-      if (!inside && settled) {
-        cur.x = GLASS_REST_01.x;
-        cur.y = GLASS_REST_01.y;
-        placeGlass(cur.x, cur.y);
-      }
-    };
-
-    const frame = () => {
-      const target = inside ? tgt : GLASS_REST_01;
-      cur.x += (target.x - cur.x) * K;
-      cur.y += (target.y - cur.y) * K;
-      placeGlass(cur.x, cur.y);
-
-      if (inside) {
-        let best = -1;
-        let bestD = Infinity;
-        for (let i = 0; i < CIRCLES_01.length; i++) {
-          const cc = CIRCLES_01[i];
-          const d = Math.hypot(cc.x - cur.x, cc.y - cur.y);
-          if (d < cc.r + HIT_PAD_01 && d < bestD) {
-            bestD = d;
-            best = i;
-          }
-        }
-        setActive(best);
-      } else {
-        setActive(-1);
-      }
-
-      // Ripple: cherry rings radiate out of the focused circle (radio broadcast).
-      // All circles stay static; only the ripple + the fill/scale change.
-      const focus = activeIdx >= 0 ? CIRCLES_01[activeIdx] : null;
-      let bgMoving = false;
-      const rg = rippleGroupRef.current;
-      if (rg) {
-        if (focus) {
-          rg.setAttribute("transform", `translate(${focus.x} ${focus.y})`);
-        }
-        rippleT += RIPPLE_SPEED_01;
-        if (rippleT >= 1) rippleT -= 1;
-        const opTarget = focus ? 1 : 0;
-        rippleOp += (opTarget - rippleOp) * RIPPLE_EASE_01;
-        rg.style.opacity = rippleOp.toFixed(3); // overall reveal, full cherry
-        for (let i = 0; i < RIPPLE_COUNT_01; i++) {
-          const el = rippleRefs.current[i];
-          if (!el) continue;
-          const ph = (rippleT + i / RIPPLE_COUNT_01) % 1;
-          el.setAttribute(
-            "r",
-            (RIPPLE_START_R_01 + ph * RIPPLE_SPREAD_01).toFixed(2),
-          );
-          // Born at full line width, thinning to 0 as it expands — the ring
-          // disappears by line width, not by colour opacity.
-          el.setAttribute("stroke-width", (STROKE * (1 - ph)).toFixed(3));
-        }
-        if (focus || rippleOp > 0.005) bgMoving = true;
-      }
-
-      settled =
-        !inside &&
-        Math.hypot(target.x - cur.x, target.y - cur.y) < 0.5 &&
-        !bgMoving;
-      if (inside || !settled) {
-        raf = requestAnimationFrame(frame);
-      } else {
-        raf = 0;
-        placeGlass(target.x, target.y);
-      }
-    };
-
-    const toLocal = (e: PointerEvent) => ({
-      x: (e.clientX - rect.left - c.Cx) / c.s,
-      y: (e.clientY - rect.top - c.Cy) / c.s,
-    });
-
-    const onEnter = (e: PointerEvent) => {
-      inside = true;
-      settled = false;
-      rect = root.getBoundingClientRect();
-      const p = toLocal(e);
-      tgt.x = p.x;
-      tgt.y = p.y;
-      root.style.cursor = "none";
-      glass.setAttribute("stroke", CHERRY);
-      if (!raf) raf = requestAnimationFrame(frame);
-    };
-    const onMove = (e: PointerEvent) => {
-      if (!inside) return;
-      const p = toLocal(e);
-      tgt.x = p.x;
-      tgt.y = p.y;
-    };
-    const onLeave = () => {
-      inside = false;
-      root.style.cursor = "";
-      glass.setAttribute("stroke", CHARCOAL);
-      setActive(-1);
-      if (!raf) raf = requestAnimationFrame(frame);
-    };
-
-    layout();
-    const ro = new ResizeObserver(() => {
-      rect = root.getBoundingClientRect();
-      layout();
-    });
-    ro.observe(root);
-    const onScroll = () => {
-      rect = root.getBoundingClientRect();
-    };
-
-    if (enabled) {
-      root.addEventListener("pointerenter", onEnter);
-      root.addEventListener("pointermove", onMove);
-      root.addEventListener("pointerleave", onLeave);
-      window.addEventListener("scroll", onScroll, { passive: true });
-    }
-
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      root.removeEventListener("pointerenter", onEnter);
-      root.removeEventListener("pointermove", onMove);
-      root.removeEventListener("pointerleave", onLeave);
-      window.removeEventListener("scroll", onScroll);
-      root.style.cursor = "";
-    };
-  }, [enabled]);
-
-  return (
-    <CanvasRoot rootRef={rootRef}>
-      <Scene
-        svgRef={svgRef}
-        groupRef={groupRef}
-        initial={initialTransform(COMP_H_01, COMP_W_01, TEXTBLOCK_01)}
-      >
-        {/* Ripple rings — radiate from the focused circle, invisible at rest.
-            Rendered behind the cluster circles. */}
-        <g
-          ref={rippleGroupRef}
-          transform="translate(0 0)"
-          style={{ opacity: 0, willChange: "opacity, transform" }}
-        >
-          {Array.from({ length: RIPPLE_COUNT_01 }).map((_, i) => (
-            <circle
-              key={`r${i}`}
-              ref={(el) => {
-                rippleRefs.current[i] = el;
-              }}
-              cx={0}
-              cy={0}
-              r={RIPPLE_START_R_01}
-              stroke={CHERRY}
-              strokeWidth={STROKE}
-            />
-          ))}
-        </g>
-        {CIRCLES_01.map((cc, i) => (
-          <circle
-            key={i}
-            ref={(el) => {
-              circleRefs.current[i] = el;
-            }}
-            cx={cc.x}
-            cy={cc.y}
-            r={cc.r}
-            style={{
-              transformBox: "fill-box",
-              transformOrigin: "center",
-              transition: STATE_TRANSITION,
-            }}
-          />
-        ))}
-        <g
-          ref={glassRef}
-          transform={`translate(${GLASS_REST_01.x} ${GLASS_REST_01.y})`}
-          style={{ willChange: "transform" }}
-        >
-          <circle cx={0} cy={0} r={LENS_R_01} />
-          <line x1={14} y1={14.6} x2={29} y2={34.6} />
-        </g>
-      </Scene>
-    </CanvasRoot>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// 02 — Users click through real code, not mockups.
-// Static: an outlined browser window (title-bar divider, 3 traffic dots, one
-// pill button) + a resting arrow cursor, all offsets from the window centre.
-// Interactive: the OS cursor hides, the arrow follows (tip = hotspot, cherry
-// stroke, cream fill). When the tip enters the button, the pill fills cherry.
-// ---------------------------------------------------------------------------
-const WIN_02 = { w: 200, h: 121, rx: 8 };
-const DIVIDER_Y_02 = -45;
-const DOT_Y_02 = -51;
-const DOTS_X_02 = [-90, -82, -74];
-const BTN_02 = { cx: -1, cy: 24, w: 88, h: 28 };
-const ARROW_REST_02 = { x: 54, y: 42 }; // arrow tip offset — straddling the window's bottom edge
+const WIN_01 = { w: 200, h: 121, rx: 8 };
+const DIVIDER_Y_01 = -45;
+const DOT_Y_01 = -51;
+const DOTS_X_01 = [-90, -82, -74];
+const BTN_01 = { cx: -1, cy: 24, w: 88, h: 28 };
+const ARROW_REST_01 = { x: 54, y: 42 }; // arrow tip — straddling the window's bottom edge
 // Arrow pointer with its tip at the group origin (0,0), ~25 x 38.
-const ARROW_PATH_02 = "M0 0 L0 34 L8 26 L13.5 38 L19 35 L13.5 23.5 L25 23.5 Z";
-const COMP_H_02 = 140; // window + the cursor that hangs past its bottom edge
-const COMP_W_02 = 200; // window width
-const TEXTBLOCK_02 = 52;
-const BASE_02 = 0.88; // sized to sit alongside cards 1 & 3
+const ARROW_PATH_01 = "M0 0 L0 34 L8 26 L13.5 38 L19 35 L13.5 23.5 L25 23.5 Z";
+const COMP_H_01 = 140; // window + the cursor that hangs past its bottom edge
+const COMP_W_01 = 200;
+const TEXTBLOCK_01 = 70; // 3 lines of card text
+const BASE_01 = 0.88;
 
-// Background "window responds" layer: sine waves clipped to the window body,
-// scrolling right→left while the cursor is over the button (tied to `over`).
-const WINDOW_CLIP_ID_02 = "vp2-window-clip"; // single card-02 instance → stable
-const WAVE_WAVELENGTH_02 = 44; // vertical wavelength of each line's sway
-const WAVE_AMP_02 = 5; // horizontal sway amplitude
-const WAVE_WIDTH_02 = WIN_02.w * 2; // ~2× window width so scroll wraps seamlessly
-const WAVE_SPACING_02 = 22; // horizontal gap between the vertical lines
-const WAVE_SPEED_02 = 0.6; // px/frame leftward
-const WAVE_OPACITY_02 = 1; // full cherry while over the button
-const WAVE_STROKE_02 = STROKE; // match the illustration's line width
-const WAVE_EASE_02 = 0.12; // opacity ease factor
+// Background "the product responds" layer: sine waves clipped to the window
+// body, scrolling right→left while the cursor is over the button.
+const WINDOW_CLIP_ID_01 = "vp1-window-clip"; // single card-01 instance → stable
+const WAVE_WAVELENGTH_01 = 44;
+const WAVE_AMP_01 = 5;
+const WAVE_WIDTH_01 = WIN_01.w * 2; // ~2× window width so scroll wraps seamlessly
+const WAVE_SPACING_01 = 22;
+const WAVE_SPEED_01 = 0.6; // px/frame leftward
+const WAVE_EASE_01 = 0.12;
 
 /** One vertical sine-wave line centred on xMid, spanning y[top, bottom]. */
 function waveLinePath(
@@ -500,7 +229,7 @@ function waveLinePath(
   return d;
 }
 
-export function Illus02() {
+export function Illus01() {
   const enabled = useAnimateEnabled();
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -524,10 +253,10 @@ export function Illus02() {
     let over = false;
     let c: Center = { Cx: D.w / 2, Cy: 0, s: 1 };
     let rect = root.getBoundingClientRect();
-    const cur = { ...ARROW_REST_02 };
-    const tgt = { ...ARROW_REST_02 };
-    let waveOffset = 0; // scroll position, advances leftward while inside
-    let waveOpacity = 0; // eased reveal, driven by `over`
+    const cur = { ...ARROW_REST_01 };
+    const tgt = { ...ARROW_REST_01 };
+    let waveOffset = 0;
+    let waveOpacity = 0;
 
     const placeArrow = (x: number, y: number) =>
       arrow.setAttribute("transform", `translate(${x} ${y})`);
@@ -540,41 +269,39 @@ export function Illus02() {
     };
 
     const layout = () => {
-      const m = measure(root, COMP_H_02, COMP_W_02, TEXTBLOCK_02, BASE_02);
+      const m = measure(root, COMP_H_01, COMP_W_01, TEXTBLOCK_01, BASE_01);
       c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
       svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
       if (!inside && settled) {
-        cur.x = ARROW_REST_02.x;
-        cur.y = ARROW_REST_02.y;
+        cur.x = ARROW_REST_01.x;
+        cur.y = ARROW_REST_01.y;
         placeArrow(cur.x, cur.y);
       }
     };
 
     const frame = () => {
-      const target = inside ? tgt : ARROW_REST_02;
+      const target = inside ? tgt : ARROW_REST_01;
       cur.x += (target.x - cur.x) * K;
       cur.y += (target.y - cur.y) * K;
       placeArrow(cur.x, cur.y);
 
       if (inside) {
         setOver(
-          Math.abs(cur.x - BTN_02.cx) < BTN_02.w / 2 &&
-            Math.abs(cur.y - BTN_02.cy) < BTN_02.h / 2,
+          Math.abs(cur.x - BTN_01.cx) < BTN_01.w / 2 &&
+            Math.abs(cur.y - BTN_01.cy) < BTN_01.h / 2,
         );
       } else {
         setOver(false);
       }
 
-      // Background: scroll the wave pattern while the pointer is inside; reveal
-      // it (ease opacity) only while the arrow is over the button.
       if (inside) {
-        waveOffset -= WAVE_SPEED_02;
-        if (waveOffset <= -WAVE_SPACING_02) waveOffset += WAVE_SPACING_02;
+        waveOffset -= WAVE_SPEED_01;
+        if (waveOffset <= -WAVE_SPACING_01) waveOffset += WAVE_SPACING_01;
         wave.setAttribute("transform", `translate(${waveOffset.toFixed(2)} 0)`);
       }
-      const waveTarget = over ? WAVE_OPACITY_02 : 0;
-      waveOpacity += (waveTarget - waveOpacity) * WAVE_EASE_02;
+      const waveTarget = over ? 1 : 0;
+      waveOpacity += (waveTarget - waveOpacity) * WAVE_EASE_01;
       wave.style.opacity = waveOpacity.toFixed(3);
       const waveSettling = Math.abs(waveTarget - waveOpacity) > 0.005;
 
@@ -653,60 +380,60 @@ export function Illus02() {
       <Scene
         svgRef={svgRef}
         groupRef={groupRef}
-        initial={initialTransform(COMP_H_02, COMP_W_02, TEXTBLOCK_02, BASE_02)}
+        initial={initialTransform(COMP_H_01, COMP_W_01, TEXTBLOCK_01, BASE_01)}
       >
         <rect
-          x={-WIN_02.w / 2}
-          y={-WIN_02.h / 2}
-          width={WIN_02.w}
-          height={WIN_02.h}
-          rx={WIN_02.rx}
+          x={-WIN_01.w / 2}
+          y={-WIN_01.h / 2}
+          width={WIN_01.w}
+          height={WIN_01.h}
+          rx={WIN_01.rx}
         />
         <line
-          x1={-WIN_02.w / 2}
-          y1={DIVIDER_Y_02}
-          x2={WIN_02.w / 2}
-          y2={DIVIDER_Y_02}
+          x1={-WIN_01.w / 2}
+          y1={DIVIDER_Y_01}
+          x2={WIN_01.w / 2}
+          y2={DIVIDER_Y_01}
         />
         {/* Background: scrolling wave pattern clipped to the window body,
             behind the dots / button / arrow, opacity 0 at rest. */}
-        <clipPath id={WINDOW_CLIP_ID_02}>
+        <clipPath id={WINDOW_CLIP_ID_01}>
           <rect
-            x={-WIN_02.w / 2}
-            y={DIVIDER_Y_02}
-            width={WIN_02.w}
-            height={WIN_02.h / 2 - DIVIDER_Y_02}
+            x={-WIN_01.w / 2}
+            y={DIVIDER_Y_01}
+            width={WIN_01.w}
+            height={WIN_01.h / 2 - DIVIDER_Y_01}
           />
         </clipPath>
-        <g clipPath={`url(#${WINDOW_CLIP_ID_02})`}>
+        <g clipPath={`url(#${WINDOW_CLIP_ID_01})`}>
           <g
             ref={waveRef}
             style={{ opacity: 0, willChange: "opacity, transform" }}
           >
             {Array.from({
-              length: Math.ceil(WAVE_WIDTH_02 / WAVE_SPACING_02) + 1,
+              length: Math.ceil(WAVE_WIDTH_01 / WAVE_SPACING_01) + 1,
             }).map((_, i) => (
               <path
                 key={i}
                 d={waveLinePath(
-                  -WAVE_WIDTH_02 / 2 + i * WAVE_SPACING_02,
-                  WAVE_AMP_02,
-                  WAVE_WAVELENGTH_02,
-                  DIVIDER_Y_02,
-                  WIN_02.h / 2,
+                  -WAVE_WIDTH_01 / 2 + i * WAVE_SPACING_01,
+                  WAVE_AMP_01,
+                  WAVE_WAVELENGTH_01,
+                  DIVIDER_Y_01,
+                  WIN_01.h / 2,
                 )}
                 fill="none"
                 stroke={CHERRY}
-                strokeWidth={WAVE_STROKE_02}
+                strokeWidth={STROKE}
               />
             ))}
           </g>
         </g>
-        {DOTS_X_02.map((x, i) => (
+        {DOTS_X_01.map((x, i) => (
           <circle
             key={i}
             cx={x}
-            cy={DOT_Y_02}
+            cy={DOT_Y_01}
             r={2}
             fill={CHARCOAL}
             stroke="none"
@@ -714,20 +441,20 @@ export function Illus02() {
         ))}
         <rect
           ref={btnRef}
-          x={BTN_02.cx - BTN_02.w / 2}
-          y={BTN_02.cy - BTN_02.h / 2}
-          width={BTN_02.w}
-          height={BTN_02.h}
-          rx={BTN_02.h / 2}
+          x={BTN_01.cx - BTN_01.w / 2}
+          y={BTN_01.cy - BTN_01.h / 2}
+          width={BTN_01.w}
+          height={BTN_01.h}
+          rx={BTN_01.h / 2}
           style={{ transition: "fill 150ms ease, stroke 150ms ease" }}
         />
         <g
           ref={arrowRef}
-          transform={`translate(${ARROW_REST_02.x} ${ARROW_REST_02.y})`}
+          transform={`translate(${ARROW_REST_01.x} ${ARROW_REST_01.y})`}
           stroke={CHARCOAL}
           style={{ willChange: "transform" }}
         >
-          <path d={ARROW_PATH_02} fill={CREAM} />
+          <path d={ARROW_PATH_01} fill={CREAM} />
         </g>
       </Scene>
     </CanvasRoot>
@@ -735,94 +462,149 @@ export function Illus02() {
 }
 
 // ---------------------------------------------------------------------------
-// 03 — I build discovery workflows tuned to how your team works.
-// Static: 8 outer circles ringed around 1 hub, no lines. Interactive: the OS
-// cursor hides and becomes a hollow cherry ring. Drop the ring into the hub and
-// the workflow "connects": 8 spokes appear, the hub fills cherry, and the outer
-// ring orbits continuously (ease-in). Leaving unwinds it (ease-out).
+// 02 — Bring structure to teams stuck on ad hoc decisions.
+// Rest: the structure itself — a hub and a six-point ring, every link drawn.
+// Ordered and complete with no interaction. Interactive: a cherry wavefront
+// sweeps steadily left to right across the structure, lighting each link and
+// node as it passes. The sweep is independent of where the pointer is — firing
+// it from the nearest node made it restart and jump every time you moved.
 // ---------------------------------------------------------------------------
-const HUB_R_03 = 21.5;
-const OUTER_R_03 = 13.5;
-const OUTER_03: { x: number; y: number }[] = [
-  { x: 63, y: 0 },
-  { x: 44.5, y: 44.5 },
-  { x: 0, y: 63 },
-  { x: -44.5, y: 44.5 },
-  { x: -63, y: 0 },
-  { x: -44.5, y: -44.5 },
-  { x: 0, y: -63 },
-  { x: 44.5, y: -44.5 },
+const HUB_R_02 = 20;
+const OUTER_R_02 = 12;
+const RING_R_02 = 60;
+const NODES_02: { x: number; y: number }[] = [
+  { x: 0, y: 0 },
+  { x: 0, y: -RING_R_02 },
+  { x: 51.96, y: -30 },
+  { x: 51.96, y: 30 },
+  { x: 0, y: RING_R_02 },
+  { x: -51.96, y: 30 },
+  { x: -51.96, y: -30 },
 ];
-const CURSOR_RING_R_03 = 12.5;
-const ORBIT_SPEED_03 = 0.85; // target deg/frame
-const ORBIT_ACCEL_03 = 0.04; // ease-in/out of the spin
-const COMP_H_03 = 154;
-const COMP_W_03 = 154;
-const TEXTBLOCK_03 = 78;
+// Hub spokes + ring perimeter.
+const EDGES_02: [number, number][] = [
+  [0, 1],
+  [0, 2],
+  [0, 3],
+  [0, 4],
+  [0, 5],
+  [0, 6],
+  [1, 2],
+  [2, 3],
+  [3, 4],
+  [4, 5],
+  [5, 6],
+  [6, 1],
+];
 
-export function Illus03() {
+/** Edge endpoints trimmed to each end's rim, so links never cut through a node. */
+function trimEdge(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  ra: number,
+  rb: number,
+) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  return {
+    x1: a.x + ux * ra,
+    y1: a.y + uy * ra,
+    x2: b.x - ux * rb,
+    y2: b.y - uy * rb,
+  };
+}
+
+/** Radius of node i — index 0 is the hub. */
+const radius02 = (i: number) => (i === 0 ? HUB_R_02 : OUTER_R_02);
+
+const SWEEP_SPEED_02 = 0.006; // phase per frame — one pass ≈ 2.8s
+const SWEEP_FROM_02 = -95; // starts clear of the left edge
+const SWEEP_TO_02 = 95; // ends clear of the right edge
+const SWEEP_BAND_02 = 46; // thickness of the travelling front
+// Without this the front only grazes full strength, so a cherry line at ~0.1
+// opacity over cream reads as nothing. Boosting plateaus the core of the front
+// at full opacity and keeps a soft edge.
+const SWEEP_BOOST_02 = 1.9;
+const PULSE_EASE_02 = 0.1; // master fade in / out of the whole signal
+const LIT_STROKE_02 = STROKE + 1.2; // lit links sit proud of the base line
+const CURSOR_R_02 = 12.5;
+const COMP_H_02 = 150;
+const COMP_W_02 = 150;
+const TEXTBLOCK_02 = 48;
+
+export function Illus02() {
   const enabled = useAnimateEnabled();
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const groupRef = useRef<SVGGElement>(null);
-  const orbitRef = useRef<SVGGElement>(null);
-  const hubRef = useRef<SVGCircleElement>(null);
-  const ringRef = useRef<SVGCircleElement>(null);
-  const spokeRefs = useRef<(SVGLineElement | null)[]>([]);
+  const cursorRef = useRef<SVGCircleElement>(null);
+  const litNodeRefs = useRef<(SVGCircleElement | null)[]>([]);
+  const litEdgeRefs = useRef<(SVGLineElement | null)[]>([]);
 
   useEffect(() => {
     const root = rootRef.current;
     const svg = svgRef.current;
     const group = groupRef.current;
-    const orbit = orbitRef.current;
-    const hub = hubRef.current;
-    const ring = ringRef.current;
-    if (!root || !svg || !group || !orbit || !hub || !ring) return;
+    const cursor = cursorRef.current;
+    if (!root || !svg || !group || !cursor) return;
 
     let raf = 0;
     let inside = false;
-    let active = false;
-    let angle = 0;
-    let speed = 0;
+    let settled = true;
     let c: Center = { Cx: D.w / 2, Cy: 0, s: 1 };
     let rect = root.getBoundingClientRect();
     const cur = { x: 0, y: 0 };
     const tgt = { x: 0, y: 0 };
-
-    const placeRing = (x: number, y: number) =>
-      ring.setAttribute("transform", `translate(${x} ${y})`);
-
-    const setActive = (v: boolean) => {
-      if (v === active) return;
-      active = v;
-      hub.setAttribute("fill", v ? CHERRY : "none");
-      spokeRefs.current.forEach((s) => {
-        if (s) s.style.opacity = v ? "1" : "0";
-      });
-    };
+    let sweepT = 0;
+    let reveal = 0;
 
     const layout = () => {
-      const m = measure(root, COMP_H_03, COMP_W_03, TEXTBLOCK_03);
+      const m = measure(root, COMP_H_02, COMP_W_02, TEXTBLOCK_02);
       c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
       svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
     };
 
     const frame = () => {
+      cur.x += (tgt.x - cur.x) * K;
+      cur.y += (tgt.y - cur.y) * K;
+      cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
+
       if (inside) {
-        cur.x += (tgt.x - cur.x) * K;
-        cur.y += (tgt.y - cur.y) * K;
-        placeRing(cur.x, cur.y);
+        sweepT += SWEEP_SPEED_02;
+        if (sweepT >= 1) sweepT -= 1;
+      }
+      reveal += ((inside ? 1 : 0) - reveal) * PULSE_EASE_02;
+
+      // One front, always travelling the same way, so the rhythm never jumps.
+      const front = lerp(SWEEP_FROM_02, SWEEP_TO_02, sweepT);
+      const litAt = (x: number) =>
+        clamp(
+          (1 - Math.abs(x - front) / SWEEP_BAND_02) * SWEEP_BOOST_02,
+          0,
+          1,
+        ) * reveal;
+
+      for (let i = 0; i < NODES_02.length; i++) {
+        const el = litNodeRefs.current[i];
+        if (!el) continue;
+        el.style.opacity = litAt(NODES_02[i].x).toFixed(3);
+      }
+      // The links carry the sweep too, keyed off each link's midpoint, so a line
+      // lights between the node it leaves and the one it reaches.
+      for (let e = 0; e < EDGES_02.length; e++) {
+        const el = litEdgeRefs.current[e];
+        if (!el) continue;
+        const [a, b] = EDGES_02[e];
+        const mx = (NODES_02[a].x + NODES_02[b].x) / 2;
+        el.style.opacity = litAt(mx).toFixed(3);
       }
 
-      setActive(inside && Math.hypot(cur.x, cur.y) < HUB_R_03);
-
-      const targetSpeed = active ? ORBIT_SPEED_03 : 0;
-      speed += (targetSpeed - speed) * ORBIT_ACCEL_03;
-      angle = (angle + speed) % 360;
-      orbit.setAttribute("transform", `rotate(${angle})`);
-
-      if (inside || Math.abs(speed) > 0.005) {
+      settled = !inside && reveal < 0.004;
+      if (inside || !settled) {
         raf = requestAnimationFrame(frame);
       } else {
         raf = 0;
@@ -836,14 +618,15 @@ export function Illus03() {
 
     const onEnter = (e: PointerEvent) => {
       inside = true;
+      settled = false;
       rect = root.getBoundingClientRect();
       const p = toLocal(e);
       cur.x = p.x;
       cur.y = p.y;
       tgt.x = p.x;
       tgt.y = p.y;
-      placeRing(cur.x, cur.y);
-      ring.style.opacity = "1";
+      cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
+      cursor.style.opacity = "1";
       root.style.cursor = "none";
       if (!raf) raf = requestAnimationFrame(frame);
     };
@@ -855,7 +638,253 @@ export function Illus03() {
     };
     const onLeave = () => {
       inside = false;
-      ring.style.opacity = "0";
+      cursor.style.opacity = "0";
+      root.style.cursor = "";
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+
+    layout();
+    const ro = new ResizeObserver(() => {
+      rect = root.getBoundingClientRect();
+      layout();
+    });
+    ro.observe(root);
+    const onScroll = () => {
+      rect = root.getBoundingClientRect();
+    };
+
+    if (enabled) {
+      root.addEventListener("pointerenter", onEnter);
+      root.addEventListener("pointermove", onMove);
+      root.addEventListener("pointerleave", onLeave);
+      window.addEventListener("scroll", onScroll, { passive: true });
+    }
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      root.removeEventListener("pointerenter", onEnter);
+      root.removeEventListener("pointermove", onMove);
+      root.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("scroll", onScroll);
+      root.style.cursor = "";
+    };
+  }, [enabled]);
+
+  return (
+    <CanvasRoot rootRef={rootRef}>
+      <Scene
+        svgRef={svgRef}
+        groupRef={groupRef}
+        initial={initialTransform(COMP_H_02, COMP_W_02, TEXTBLOCK_02)}
+      >
+        {/* Base structure — always drawn, this is what the card says. */}
+        {EDGES_02.map(([a, b], i) => (
+          <line
+            key={`e${i}`}
+            {...trimEdge(NODES_02[a], NODES_02[b], radius02(a), radius02(b))}
+          />
+        ))}
+        {NODES_02.map((n, i) => (
+          <circle key={`n${i}`} cx={n.x} cy={n.y} r={radius02(i)} />
+        ))}
+
+        {/* Signal layer — cherry copies of every link and node, clear at rest. */}
+        {EDGES_02.map(([a, b], i) => (
+          <line
+            key={`le${i}`}
+            ref={(el) => {
+              litEdgeRefs.current[i] = el;
+            }}
+            {...trimEdge(NODES_02[a], NODES_02[b], radius02(a), radius02(b))}
+            stroke={CHERRY}
+            strokeWidth={LIT_STROKE_02}
+            style={{ opacity: 0, willChange: "opacity" }}
+          />
+        ))}
+        {NODES_02.map((n, i) => (
+          <circle
+            key={`ln${i}`}
+            ref={(el) => {
+              litNodeRefs.current[i] = el;
+            }}
+            cx={n.x}
+            cy={n.y}
+            r={radius02(i)}
+            fill={CHERRY}
+            stroke={CHERRY}
+            style={{ opacity: 0, willChange: "opacity" }}
+          />
+        ))}
+        <circle
+          ref={cursorRef}
+          cx={0}
+          cy={0}
+          r={CURSOR_R_02}
+          stroke={CHERRY}
+          fill="none"
+          transform="translate(0 0)"
+          style={{
+            opacity: 0,
+            transition: "opacity 150ms ease",
+            willChange: "transform",
+          }}
+        />
+      </Scene>
+    </CanvasRoot>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 03 — Tie user discovery to real business goals.
+// Rest: two overlapping outlined circles — the two concerns and the ground
+// between them, readable with nothing to hover. Interactive: put the pointer in
+// the overlap and the shared ground fills with dollar signs rising through it,
+// clipped to the exact intersection — discovery meeting the business case. The
+// circles close a little on each other: a short, snappy move, not a shove.
+// ---------------------------------------------------------------------------
+const VENN_R_03 = 58;
+const SEP_REST_03 = 40; // each circle centre sits ±this at rest
+const SEP_MIN_03 = 33; // a short close-in, kept light
+const CLIP_L_ID_03 = "vp3-clip-l"; // single card-03 instance → stable ids
+const CLIP_R_ID_03 = "vp3-clip-r";
+// The interaction arms when the pointer is in the shared middle. Sized around
+// the rest lens (half-width VENN_R - SEP_REST = 18, half-height ~42).
+const MIDDLE_RX_03 = 27;
+const MIDDLE_RY_03 = 47;
+const CONVERGE_EASE_03 = 0.24; // snappy
+const RISE_EASE_03 = 0.2; // snappy reveal of the shared ground
+// Dollar signs rising through the lens. Columns are staggered vertically so the
+// field reads as texture rather than a marching grid.
+// Kept inside the lens half-width (VENN_R - SEP_MIN = 25) so the outer columns
+// aren't sliced in half by the clip.
+const RISE_COLS_03 = [-14, 0, 14];
+const RISE_ROW_H_03 = 30; // vertical gap between glyphs in a column
+const RISE_ROWS_03 = 6; // enough to cover the lens plus one wrap
+const RISE_SPEED_03 = 0.5; // px/frame upward
+const RISE_TOP_03 = -VENN_R_03 - RISE_ROW_H_03;
+const GLYPH_SIZE_03 = 17;
+const CURSOR_R_03 = 8;
+const COMP_H_03 = 132;
+const COMP_W_03 = 200;
+const TEXTBLOCK_03 = 48;
+
+export function Illus03() {
+  const enabled = useAnimateEnabled();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const groupRef = useRef<SVGGElement>(null);
+  const cursorRef = useRef<SVGCircleElement>(null);
+  const leftRef = useRef<SVGCircleElement>(null);
+  const rightRef = useRef<SVGCircleElement>(null);
+  const clipLRef = useRef<SVGCircleElement>(null);
+  const clipRRef = useRef<SVGCircleElement>(null);
+  const riseRef = useRef<SVGGElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const svg = svgRef.current;
+    const group = groupRef.current;
+    const cursor = cursorRef.current;
+    const left = leftRef.current;
+    const right = rightRef.current;
+    const clipL = clipLRef.current;
+    const clipR = clipRRef.current;
+    const rise = riseRef.current;
+    if (
+      !root || !svg || !group || !cursor || !left || !right ||
+      !clipL || !clipR || !rise
+    )
+      return;
+
+    let raf = 0;
+    let inside = false;
+    let settled = true;
+    let c: Center = { Cx: D.w / 2, Cy: 0, s: 1 };
+    let rect = root.getBoundingClientRect();
+    const cur = { x: 0, y: -70 };
+    const tgt = { x: 0, y: -70 };
+    let t = 0; // convergence
+    let riseOpacity = 0;
+    let riseOffset = 0;
+    let joined = false;
+
+    const layout = () => {
+      const m = measure(root, COMP_H_03, COMP_W_03, TEXTBLOCK_03);
+      c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
+      svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
+      group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
+    };
+
+    const frame = () => {
+      cur.x += (tgt.x - cur.x) * K;
+      cur.y += (tgt.y - cur.y) * K;
+      cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
+
+      // Armed only while the pointer is inside the shared middle.
+      const inMiddle =
+        inside &&
+        (cur.x / MIDDLE_RX_03) ** 2 + (cur.y / MIDDLE_RY_03) ** 2 < 1;
+      t += ((inMiddle ? 1 : 0) - t) * CONVERGE_EASE_03;
+
+      const sep = lerp(SEP_REST_03, SEP_MIN_03, t);
+      left.setAttribute("cx", (-sep).toFixed(2));
+      right.setAttribute("cx", sep.toFixed(2));
+      // Two nested clips → the waves show only in the exact intersection.
+      clipL.setAttribute("cx", (-sep).toFixed(2));
+      clipR.setAttribute("cx", sep.toFixed(2));
+
+      if (inside) {
+        riseOffset -= RISE_SPEED_03;
+        if (riseOffset <= -RISE_ROW_H_03) riseOffset += RISE_ROW_H_03;
+        rise.setAttribute("transform", `translate(0 ${riseOffset.toFixed(2)})`);
+      }
+      riseOpacity += ((inMiddle ? 1 : 0) - riseOpacity) * RISE_EASE_03;
+      rise.style.opacity = riseOpacity.toFixed(3);
+
+      const on = t > 0.5;
+      if (on !== joined) {
+        joined = on;
+        left.setAttribute("stroke", on ? CHERRY : CHARCOAL);
+        right.setAttribute("stroke", on ? CHERRY : CHARCOAL);
+      }
+
+      settled = !inside && t < 0.004 && riseOpacity < 0.004;
+      if (inside || !settled) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        raf = 0;
+      }
+    };
+
+    const toLocal = (e: PointerEvent) => ({
+      x: (e.clientX - rect.left - c.Cx) / c.s,
+      y: (e.clientY - rect.top - c.Cy) / c.s,
+    });
+
+    const onEnter = (e: PointerEvent) => {
+      inside = true;
+      settled = false;
+      rect = root.getBoundingClientRect();
+      const p = toLocal(e);
+      cur.x = p.x;
+      cur.y = p.y;
+      tgt.x = p.x;
+      tgt.y = p.y;
+      cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
+      cursor.style.opacity = "1";
+      root.style.cursor = "none";
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!inside) return;
+      const p = toLocal(e);
+      tgt.x = p.x;
+      tgt.y = p.y;
+    };
+    const onLeave = () => {
+      inside = false;
+      cursor.style.opacity = "0";
       root.style.cursor = "";
       if (!raf) raf = requestAnimationFrame(frame);
     };
@@ -895,45 +924,74 @@ export function Illus03() {
         groupRef={groupRef}
         initial={initialTransform(COMP_H_03, COMP_W_03, TEXTBLOCK_03)}
       >
-        <g ref={orbitRef}>
-          {OUTER_03.map((o, i) => {
-            const dist = Math.hypot(o.x, o.y);
-            const sf = HUB_R_03 / dist; // start at the hub edge
-            const ef = 1 - OUTER_R_03 / dist; // stop at the outer circle edge
-            return (
-              <line
-                key={`s${i}`}
-                ref={(el) => {
-                  spokeRefs.current[i] = el;
-                }}
-                x1={o.x * sf}
-                y1={o.y * sf}
-                x2={o.x * ef}
-                y2={o.y * ef}
-                style={{ opacity: 0, transition: "opacity 200ms ease" }}
-              />
-            );
-          })}
-          {OUTER_03.map((o, i) => (
-            <circle key={`c${i}`} cx={o.x} cy={o.y} r={OUTER_R_03} />
-          ))}
+        {/* Nested clips: left circle ∩ right circle === the shared ground. */}
+        <clipPath id={CLIP_L_ID_03}>
+          <circle ref={clipLRef} cx={-SEP_REST_03} cy={0} r={VENN_R_03} />
+        </clipPath>
+        <clipPath id={CLIP_R_ID_03}>
+          <circle ref={clipRRef} cx={SEP_REST_03} cy={0} r={VENN_R_03} />
+        </clipPath>
+        <g clipPath={`url(#${CLIP_L_ID_03})`}>
+          <g clipPath={`url(#${CLIP_R_ID_03})`}>
+            <g
+              ref={riseRef}
+              style={{ opacity: 0, willChange: "opacity, transform" }}
+            >
+              {RISE_COLS_03.map((x, col) =>
+                Array.from({ length: RISE_ROWS_03 }).map((_, row) => (
+                  <text
+                    key={`${col}-${row}`}
+                    x={x}
+                    // Odd columns sit half a row down so the field reads as
+                    // texture rather than a marching grid.
+                    y={
+                      RISE_TOP_03 +
+                      row * RISE_ROW_H_03 +
+                      (col % 2 ? RISE_ROW_H_03 / 2 : 0)
+                    }
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill={CHERRY}
+                    stroke="none"
+                    fontSize={GLYPH_SIZE_03}
+                    fontFamily="var(--font-jetbrains-mono), monospace"
+                  >
+                    $
+                  </text>
+                )),
+              )}
+            </g>
+          </g>
         </g>
+        {/* What users need. */}
         <circle
-          ref={hubRef}
-          cx={0}
+          ref={leftRef}
+          cx={-SEP_REST_03}
           cy={0}
-          r={HUB_R_03}
-          style={{ transition: "fill 150ms ease" }}
+          r={VENN_R_03}
+          style={{ transition: "stroke 150ms ease", willChange: "cx" }}
+        />
+        {/* What the business needs. */}
+        <circle
+          ref={rightRef}
+          cx={SEP_REST_03}
+          cy={0}
+          r={VENN_R_03}
+          style={{ transition: "stroke 150ms ease", willChange: "cx" }}
         />
         <circle
-          ref={ringRef}
+          ref={cursorRef}
           cx={0}
           cy={0}
-          r={CURSOR_RING_R_03}
+          r={CURSOR_R_03}
           stroke={CHERRY}
           fill="none"
-          transform="translate(0 0)"
-          style={{ opacity: 0, transition: "opacity 150ms ease", willChange: "transform" }}
+          transform="translate(0 -70)"
+          style={{
+            opacity: 0,
+            transition: "opacity 150ms ease",
+            willChange: "transform",
+          }}
         />
       </Scene>
     </CanvasRoot>
