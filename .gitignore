@@ -43,3 +43,6 @@ next-env.d.ts
 # claude code local state (hindsight, plans, settings, canvas)
 .claude/
 .env*.local
+
+# obsidian vault config (not part of the site)
+.obsidian/
