@@ -20,7 +20,7 @@ const entries: ExperienceEntry[] = [
     body: [
       {
         label: "Design Systems & AI Migration:",
-        text: "Audited, restructured, and migrated a legacy enterprise design system (MUI to shadcn) in 5 weeks—a cycle that traditionally spans a full quarter. Rebuilt 35 core components, stripped out architecture redundancies, and established unified design tokens.",
+        text: "Audited, restructured, and migrated a legacy enterprise design system (MUI to shadcn) in 5 weeks, a cycle that traditionally spans a full quarter. Rebuilt 35 core components, stripped out architecture redundancies, and established unified design tokens.",
       },
       {
         label: "Design-to-Code Alignment:",

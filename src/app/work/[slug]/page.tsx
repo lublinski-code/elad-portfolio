@@ -36,7 +36,7 @@ export async function generateMetadata({
   const work = await getWorkBySlug(slug);
   if (!work) return {};
   return {
-    title: `${work.title} — Elad Lublinski`,
+    title: `${work.title} - Elad Lublinski`,
     description: work.subtitle,
   };
 }

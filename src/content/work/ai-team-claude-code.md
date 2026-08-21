@@ -128,7 +128,7 @@ The memory system is what separates an AI operating system from a collection of 
 | 2 | **Primer** | Static identity: who I am, how I work, build philosophy, non-negotiables, current projects, key decisions already made. Written once, updated rarely. | Global | Manually, rarely |
 | 3 | **Git Context** | Live project state injected automatically at session start. Current branch, recent commits, uncommitted changes, diff status. Always fresh, never stale. | Per project | Automatic via hook |
 | 4 | **Hindsight** | Session carry-forward at two scopes. Project-level: what shipped, what broke, open threads. Global: cross-project learnings that accumulate over time. Written by `/end-session`, loaded at session start. | Global + Project | `/end-session` |
-| 5 | **Obsidian Vault** | Long-term knowledge base: project notes, ideas, product decisions with reasoning, research. Not loaded every session — accessed on demand by any agent via MCP. | Global | Manually or via agents |
+| 5 | **Obsidian Vault** | Long-term knowledge base: project notes, ideas, product decisions with reasoning, research. Not loaded every session, accessed on demand by any agent via MCP. | Global | Manually or via agents |
 
 > Starting a session without context is just prompting. Starting a session where the system already knows the project state and the last decision, that's actually working.
 
@@ -147,7 +147,7 @@ The most useful design decisions were about scope. A system that tries to cover 
 | Accessibility Specialist | CDO and Frontend carry WCAG standards via shared rules. |
 | DBA | Backend owns data modeling. The Supabase skill handles the specifics. |
 
-The system also migrated from existing Cursor agent configs. The CPO and CTO had already been built for .cursor/agents/ — the session was partly an exercise in porting, improving, and formalizing what already worked in practice.
+The system also migrated from existing Cursor agent configs. The CPO and CTO had already been built for .cursor/agents/. The session was partly an exercise in porting, improving, and formalizing what already worked in practice.
 
 ---
 
