@@ -25,6 +25,9 @@ const DESCRIPTION =
   "Fractional Head of Product Design. I build the design systems and AI-fluent workflows startups need, from zero-stage teams to teams scaling past ad hoc decisions.";
 
 export const metadata: Metadata = {
+  // Without this, Next resolves the OG/Twitter image against VERCEL_URL, so
+  // share cards point at the .vercel.app deployment rather than the real domain.
+  metadataBase: new URL("https://eladlublinski.com"),
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {
