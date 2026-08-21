@@ -102,9 +102,14 @@ export default function Hi() {
 
         <HiDivider />
 
-        {/* Row 4: right-aligned, full width */}
+        {/* Row 4: right-aligned, but held off the right edge so it steps in from
+            "A Product" above rather than stacking flush with it. Percentage so
+            the inset tracks the row width instead of fixing at one viewport. */}
         <Row>
-          <p className="heading-display w-full text-right" style={{ color: "var(--cream)" }}>
+          <p
+            className="heading-display w-full text-right pr-[15%]"
+            style={{ color: "var(--cream)" }}
+          >
             Lead
           </p>
         </Row>
