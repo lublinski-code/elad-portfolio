@@ -44,6 +44,23 @@ const clamp = (v: number, lo: number, hi: number) =>
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
+// Critically-ish damped spring, stepped per frame. A touch of overshoot is what
+// makes a snap read as a snap rather than a slide — plain exponential easing
+// always arrives apologetically.
+const SPRING_STIFF = 0.2;
+const SPRING_DAMP = 0.68;
+function spring<T extends string>(
+  pos: Record<T, number>,
+  vel: Record<T, number>,
+  tgt: Record<T, number>,
+  key: T,
+  stiff = SPRING_STIFF,
+  damp = SPRING_DAMP,
+) {
+  vel[key] = (vel[key] + (tgt[key] - pos[key]) * stiff) * damp;
+  pos[key] += vel[key];
+}
+
 type Center = { Cx: number; Cy: number; s: number };
 
 /**
@@ -463,76 +480,36 @@ export function Illus01() {
 
 // ---------------------------------------------------------------------------
 // 02 — Bring structure to teams stuck on ad hoc decisions.
-// Rest: the structure itself — a hub and a six-point ring, every link drawn.
-// Ordered and complete with no interaction. Interactive: a cherry wavefront
-// sweeps steadily left to right across the structure, lighting each link and
-// node as it passes. The sweep is independent of where the pointer is — firing
-// it from the nearest node made it restart and jump every time you moved.
+// Rest: a tidy 3x3 grid with one slot still empty and its block sitting loose
+// and askew outside — an ordered system, one piece short. Legible with no
+// pointer at all. Interactive: the loose block rides your cursor, and bringing
+// it near the empty slot snaps it home on a spring with a cherry flash.
 // ---------------------------------------------------------------------------
-const HUB_R_02 = 20;
-const OUTER_R_02 = 12;
-const RING_R_02 = 60;
-const NODES_02: { x: number; y: number }[] = [
-  { x: 0, y: 0 },
-  { x: 0, y: -RING_R_02 },
-  { x: 51.96, y: -30 },
-  { x: 51.96, y: 30 },
-  { x: 0, y: RING_R_02 },
-  { x: -51.96, y: 30 },
-  { x: -51.96, y: -30 },
-];
-// Hub spokes + ring perimeter.
-const EDGES_02: [number, number][] = [
-  [0, 1],
-  [0, 2],
-  [0, 3],
-  [0, 4],
-  [0, 5],
-  [0, 6],
-  [1, 2],
-  [2, 3],
-  [3, 4],
-  [4, 5],
-  [5, 6],
-  [6, 1],
-];
-
-/** Edge endpoints trimmed to each end's rim, so links never cut through a node. */
-function trimEdge(
-  a: { x: number; y: number },
-  b: { x: number; y: number },
-  ra: number,
-  rb: number,
-) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const ux = dx / len;
-  const uy = dy / len;
-  return {
-    x1: a.x + ux * ra,
-    y1: a.y + uy * ra,
-    x2: b.x - ux * rb,
-    y2: b.y - uy * rb,
-  };
-}
-
-/** Radius of node i — index 0 is the hub. */
-const radius02 = (i: number) => (i === 0 ? HUB_R_02 : OUTER_R_02);
-
-const SWEEP_SPEED_02 = 0.006; // phase per frame — one pass ≈ 2.8s
-const SWEEP_FROM_02 = -95; // starts clear of the left edge
-const SWEEP_TO_02 = 95; // ends clear of the right edge
-const SWEEP_BAND_02 = 46; // thickness of the travelling front
-// Without this the front only grazes full strength, so a cherry line at ~0.1
-// opacity over cream reads as nothing. Boosting plateaus the core of the front
-// at full opacity and keeps a soft edge.
-const SWEEP_BOOST_02 = 1.9;
-const PULSE_EASE_02 = 0.1; // master fade in / out of the whole signal
-const LIT_STROKE_02 = STROKE + 1.2; // lit links sit proud of the base line
-const CURSOR_R_02 = 12.5;
+const SQ_02 = 32; // block side
+const SQ_RX_02 = 5;
+const STEP_02 = 44; // grid pitch
+const SLOT_02 = { x: STEP_02, y: STEP_02 }; // the empty one, bottom-right
+const CELLS_02 = [-STEP_02, 0, STEP_02].flatMap((y) =>
+  [-STEP_02, 0, STEP_02].map((x) => ({ x, y })),
+);
+const FILLED_02 = CELLS_02.filter(
+  (p) => !(p.x === SLOT_02.x && p.y === SLOT_02.y),
+);
+const PARKED_02 = { x: 84, y: -58, rot: -14 }; // loose block at rest
+// Following the cursor wants far less bounce than landing in the slot does —
+// at the default damping the block trails you on a visible rubber band.
+const FOLLOW_STIFF_02 = 0.3;
+const FOLLOW_DAMP_02 = 0.42;
+const SNAP_R_02 = 30; // how close before it locks home
+const FLASH_SPEED_02 = 0.055; // flash ring phase per frame
+// Landing the last piece wakes the whole system: a cherry pulse runs outward
+// through the grid from the slot, each block lighting in turn.
+const CASCADE_SPEED_02 = 0.03; // phase per frame
+const CASCADE_SPREAD_02 = 0.6; // how much of the run is spent travelling out
+const CASCADE_W_02 = 0.4; // how long any one block stays lit
+const CASCADE_MAX_D_02 = Math.hypot(2 * STEP_02, 2 * STEP_02);
 const COMP_H_02 = 150;
-const COMP_W_02 = 150;
+const COMP_W_02 = 208;
 const TEXTBLOCK_02 = 48;
 
 export function Illus02() {
@@ -540,26 +517,32 @@ export function Illus02() {
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const groupRef = useRef<SVGGElement>(null);
-  const cursorRef = useRef<SVGCircleElement>(null);
-  const litNodeRefs = useRef<(SVGCircleElement | null)[]>([]);
-  const litEdgeRefs = useRef<(SVGLineElement | null)[]>([]);
+  const looseRef = useRef<SVGGElement>(null);
+  const looseRectRef = useRef<SVGRectElement>(null);
+  const flashRef = useRef<SVGRectElement>(null);
+  const litCellRefs = useRef<(SVGRectElement | null)[]>([]);
 
   useEffect(() => {
     const root = rootRef.current;
     const svg = svgRef.current;
     const group = groupRef.current;
-    const cursor = cursorRef.current;
-    if (!root || !svg || !group || !cursor) return;
+    const loose = looseRef.current;
+    const looseRect = looseRectRef.current;
+    const flash = flashRef.current;
+    if (!root || !svg || !group || !loose || !looseRect || !flash) return;
 
     let raf = 0;
     let inside = false;
-    let settled = true;
+    let snapped = false;
     let c: Center = { Cx: D.w / 2, Cy: 0, s: 1 };
     let rect = root.getBoundingClientRect();
-    const cur = { x: 0, y: 0 };
-    const tgt = { x: 0, y: 0 };
-    let sweepT = 0;
-    let reveal = 0;
+    // Spring state for the loose block — a little overshoot is what makes the
+    // snap feel like a snap rather than a slide.
+    const pos = { x: PARKED_02.x, y: PARKED_02.y, rot: PARKED_02.rot };
+    const vel = { x: 0, y: 0, rot: 0 };
+    const tgt = { ...PARKED_02 };
+    let flashT = 1; // 1 === spent
+    let cascadeT = 2; // > 1 + spread === spent
 
     const layout = () => {
       const m = measure(root, COMP_H_02, COMP_W_02, TEXTBLOCK_02);
@@ -568,43 +551,84 @@ export function Illus02() {
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
     };
 
+    const setSnapped = (v: boolean) => {
+      if (v === snapped) return;
+      snapped = v;
+      looseRect.setAttribute("stroke", v ? CHERRY : CHARCOAL);
+      looseRect.setAttribute("fill", v ? CHERRY : "none");
+      if (v) {
+        flashT = 0; // fire the ring
+        cascadeT = 0; // and wake the grid
+      }
+    };
+
     const frame = () => {
-      cur.x += (tgt.x - cur.x) * K;
-      cur.y += (tgt.y - cur.y) * K;
-      cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
-
-      if (inside) {
-        sweepT += SWEEP_SPEED_02;
-        if (sweepT >= 1) sweepT -= 1;
+      // Where the block wants to be this frame.
+      if (inside && snapped) {
+        tgt.x = SLOT_02.x;
+        tgt.y = SLOT_02.y;
+        tgt.rot = 0;
+      } else if (!inside) {
+        tgt.x = PARKED_02.x;
+        tgt.y = PARKED_02.y;
+        tgt.rot = PARKED_02.rot;
       }
-      reveal += ((inside ? 1 : 0) - reveal) * PULSE_EASE_02;
 
-      // One front, always travelling the same way, so the rhythm never jumps.
-      const front = lerp(SWEEP_FROM_02, SWEEP_TO_02, sweepT);
-      const litAt = (x: number) =>
-        clamp(
-          (1 - Math.abs(x - front) / SWEEP_BAND_02) * SWEEP_BOOST_02,
-          0,
-          1,
-        ) * reveal;
+      // Springy on the way home, near-critically damped while tracking.
+      const st = snapped ? SPRING_STIFF : FOLLOW_STIFF_02;
+      const dp = snapped ? SPRING_DAMP : FOLLOW_DAMP_02;
+      spring(pos, vel, tgt, "x", st, dp);
+      spring(pos, vel, tgt, "y", st, dp);
+      spring(pos, vel, tgt, "rot", st, dp);
+      loose.setAttribute(
+        "transform",
+        `translate(${pos.x.toFixed(2)} ${pos.y.toFixed(2)}) rotate(${pos.rot.toFixed(2)})`,
+      );
 
-      for (let i = 0; i < NODES_02.length; i++) {
-        const el = litNodeRefs.current[i];
+      // Cherry ring blooming out of the slot on the moment it locks in.
+      if (flashT < 1) {
+        flashT = Math.min(1, flashT + FLASH_SPEED_02);
+        const grow = 1 + flashT * 0.7;
+        flash.setAttribute("transform", `scale(${grow.toFixed(3)})`);
+        flash.style.opacity = (1 - flashT).toFixed(3);
+      } else {
+        flash.style.opacity = "0";
+      }
+
+      // Pulse travelling outward from the slot through the rest of the grid.
+      // It keeps looping for as long as the piece is sitting in the slot.
+      const cascadeEnd = 1 + CASCADE_SPREAD_02;
+      if (snapped) {
+        cascadeT += CASCADE_SPEED_02;
+        if (cascadeT >= cascadeEnd) cascadeT = 0;
+      } else if (cascadeT < cascadeEnd) {
+        cascadeT += CASCADE_SPEED_02; // let the last run finish on its own
+      }
+      for (let i = 0; i < FILLED_02.length; i++) {
+        const el = litCellRefs.current[i];
         if (!el) continue;
-        el.style.opacity = litAt(NODES_02[i].x).toFixed(3);
-      }
-      // The links carry the sweep too, keyed off each link's midpoint, so a line
-      // lights between the node it leaves and the one it reaches.
-      for (let e = 0; e < EDGES_02.length; e++) {
-        const el = litEdgeRefs.current[e];
-        if (!el) continue;
-        const [a, b] = EDGES_02[e];
-        const mx = (NODES_02[a].x + NODES_02[b].x) / 2;
-        el.style.opacity = litAt(mx).toFixed(3);
+        if (cascadeT >= cascadeEnd) {
+          el.style.opacity = "0";
+          continue;
+        }
+        const d =
+          Math.hypot(FILLED_02[i].x - SLOT_02.x, FILLED_02[i].y - SLOT_02.y) /
+          CASCADE_MAX_D_02;
+        const u = (cascadeT - d * CASCADE_SPREAD_02) / CASCADE_W_02;
+        el.style.opacity =
+          u > 0 && u < 1 ? Math.sin(u * Math.PI).toFixed(3) : "0";
       }
 
-      settled = !inside && reveal < 0.004;
-      if (inside || !settled) {
+      const moving =
+        snapped ||
+        cascadeT < cascadeEnd ||
+        Math.abs(vel.x) > 0.02 ||
+        Math.abs(vel.y) > 0.02 ||
+        Math.abs(vel.rot) > 0.02 ||
+        Math.hypot(tgt.x - pos.x, tgt.y - pos.y) > 0.3 ||
+        flashT < 1;
+
+      if (inside || moving) {
         raf = requestAnimationFrame(frame);
       } else {
         raf = 0;
@@ -616,29 +640,31 @@ export function Illus02() {
       y: (e.clientY - rect.top - c.Cy) / c.s,
     });
 
+    const track = (e: PointerEvent) => {
+      const p = toLocal(e);
+      const near = Math.hypot(p.x - SLOT_02.x, p.y - SLOT_02.y) < SNAP_R_02;
+      setSnapped(near);
+      if (!near) {
+        tgt.x = p.x;
+        tgt.y = p.y;
+        tgt.rot = 0;
+      }
+    };
+
     const onEnter = (e: PointerEvent) => {
       inside = true;
-      settled = false;
       rect = root.getBoundingClientRect();
-      const p = toLocal(e);
-      cur.x = p.x;
-      cur.y = p.y;
-      tgt.x = p.x;
-      tgt.y = p.y;
-      cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
-      cursor.style.opacity = "1";
       root.style.cursor = "none";
+      track(e);
       if (!raf) raf = requestAnimationFrame(frame);
     };
     const onMove = (e: PointerEvent) => {
       if (!inside) return;
-      const p = toLocal(e);
-      tgt.x = p.x;
-      tgt.y = p.y;
+      track(e);
     };
     const onLeave = () => {
       inside = false;
-      cursor.style.opacity = "0";
+      setSnapped(false);
       root.style.cursor = "";
       if (!raf) raf = requestAnimationFrame(frame);
     };
@@ -678,58 +704,73 @@ export function Illus02() {
         groupRef={groupRef}
         initial={initialTransform(COMP_H_02, COMP_W_02, TEXTBLOCK_02)}
       >
-        {/* Base structure — always drawn, this is what the card says. */}
-        {EDGES_02.map(([a, b], i) => (
-          <line
-            key={`e${i}`}
-            {...trimEdge(NODES_02[a], NODES_02[b], radius02(a), radius02(b))}
+        {/* The system that already exists. */}
+        {FILLED_02.map((p, i) => (
+          <rect
+            key={`c${i}`}
+            x={p.x - SQ_02 / 2}
+            y={p.y - SQ_02 / 2}
+            width={SQ_02}
+            height={SQ_02}
+            rx={SQ_RX_02}
           />
         ))}
-        {NODES_02.map((n, i) => (
-          <circle key={`n${i}`} cx={n.x} cy={n.y} r={radius02(i)} />
-        ))}
-
-        {/* Signal layer — cherry copies of every link and node, clear at rest. */}
-        {EDGES_02.map(([a, b], i) => (
-          <line
-            key={`le${i}`}
+        {/* Cherry copies — clear at rest, lit as the pulse reaches each block. */}
+        {FILLED_02.map((p, i) => (
+          <rect
+            key={`lc${i}`}
             ref={(el) => {
-              litEdgeRefs.current[i] = el;
+              litCellRefs.current[i] = el;
             }}
-            {...trimEdge(NODES_02[a], NODES_02[b], radius02(a), radius02(b))}
+            x={p.x - SQ_02 / 2}
+            y={p.y - SQ_02 / 2}
+            width={SQ_02}
+            height={SQ_02}
+            rx={SQ_RX_02}
             stroke={CHERRY}
-            strokeWidth={LIT_STROKE_02}
-            style={{ opacity: 0, willChange: "opacity" }}
-          />
-        ))}
-        {NODES_02.map((n, i) => (
-          <circle
-            key={`ln${i}`}
-            ref={(el) => {
-              litNodeRefs.current[i] = el;
-            }}
-            cx={n.x}
-            cy={n.y}
-            r={radius02(i)}
             fill={CHERRY}
-            stroke={CHERRY}
             style={{ opacity: 0, willChange: "opacity" }}
           />
         ))}
-        <circle
-          ref={cursorRef}
-          cx={0}
-          cy={0}
-          r={CURSOR_R_02}
-          stroke={CHERRY}
-          fill="none"
-          transform="translate(0 0)"
-          style={{
-            opacity: 0,
-            transition: "opacity 150ms ease",
-            willChange: "transform",
-          }}
+        {/* The gap it's waiting on. */}
+        <rect
+          x={SLOT_02.x - SQ_02 / 2}
+          y={SLOT_02.y - SQ_02 / 2}
+          width={SQ_02}
+          height={SQ_02}
+          rx={SQ_RX_02}
+          strokeDasharray="5 5"
+          opacity={0.55}
         />
+        {/* Flash ring, blooming out of the slot the moment the piece lands. */}
+        <g transform={`translate(${SLOT_02.x} ${SLOT_02.y})`}>
+          <rect
+            ref={flashRef}
+            x={-SQ_02 / 2}
+            y={-SQ_02 / 2}
+            width={SQ_02}
+            height={SQ_02}
+            rx={SQ_RX_02}
+            stroke={CHERRY}
+            style={{ opacity: 0, willChange: "opacity, transform" }}
+          />
+        </g>
+        {/* The loose piece. */}
+        <g
+          ref={looseRef}
+          transform={`translate(${PARKED_02.x} ${PARKED_02.y}) rotate(${PARKED_02.rot})`}
+          style={{ willChange: "transform" }}
+        >
+          <rect
+            ref={looseRectRef}
+            x={-SQ_02 / 2}
+            y={-SQ_02 / 2}
+            width={SQ_02}
+            height={SQ_02}
+            rx={SQ_RX_02}
+            style={{ transition: "fill 120ms ease, stroke 120ms ease" }}
+          />
+        </g>
       </Scene>
     </CanvasRoot>
   );
@@ -737,36 +778,45 @@ export function Illus02() {
 
 // ---------------------------------------------------------------------------
 // 03 — Tie user discovery to real business goals.
-// Rest: two overlapping outlined circles — the two concerns and the ground
-// between them, readable with nothing to hover. Interactive: put the pointer in
-// the overlap and the shared ground fills with dollar signs rising through it,
-// clipped to the exact intersection — discovery meeting the business case. The
-// circles close a little on each other: a short, snappy move, not a shove.
+// Rest: two overlapping circles — the two concerns and the shared ground
+// between them. Interactive: reach the middle and the two snap together into a
+// single circle on a spring.
 // ---------------------------------------------------------------------------
 const VENN_R_03 = 58;
-const SEP_REST_03 = 40; // each circle centre sits ±this at rest
-const SEP_MIN_03 = 33; // a short close-in, kept light
-const CLIP_L_ID_03 = "vp3-clip-l"; // single card-03 instance → stable ids
+const SEP_REST_03 = 36; // each circle centre sits ±this at rest
+// The shared ground is the intersection of the two circles, so the same clip
+// grows from a narrow lens at rest to the whole circle once they merge.
+const CLIP_L_ID_03 = "vp3-clip-l";
 const CLIP_R_ID_03 = "vp3-clip-r";
-// The interaction arms when the pointer is in the shared middle. Sized around
-// the rest lens (half-width VENN_R - SEP_REST = 18, half-height ~42).
-const MIDDLE_RX_03 = 27;
-const MIDDLE_RY_03 = 47;
-const CONVERGE_EASE_03 = 0.24; // snappy
-const RISE_EASE_03 = 0.2; // snappy reveal of the shared ground
-// Dollar signs rising through the lens. Columns are staggered vertically so the
-// field reads as texture rather than a marching grid.
-// Kept inside the lens half-width (VENN_R - SEP_MIN = 25) so the outer columns
-// aren't sliced in half by the clip.
-const RISE_COLS_03 = [-14, 0, 14];
-const RISE_ROW_H_03 = 30; // vertical gap between glyphs in a column
-const RISE_ROWS_03 = 6; // enough to cover the lens plus one wrap
-const RISE_SPEED_03 = 0.5; // px/frame upward
-const RISE_TOP_03 = -VENN_R_03 - RISE_ROW_H_03;
-const GLYPH_SIZE_03 = 17;
+// The field has to overrun the circle on every side, otherwise the clip shows
+// bare gaps at the edges. Columns run past ±VENN_R, and the rows extend a full
+// wrap below the bottom so nothing empties out as the field scrolls up.
+const RISE_COLS_03 = [-55, -33, -11, 11, 33, 55];
+const RISE_ROW_H_03 = 28;
+// Each column flies at its own rate so the field breaks formation and reads as
+// coins being shot upward, rather than one rigid sheet sliding by. Every column
+// still wraps on RISE_WRAP, which is what keeps each coin's size stable.
+const RISE_SPEEDS_03 = [1.2, 1.6, 1.35, 1.75, 1.45, 1.1]; // px/frame, per column
+// The field wraps every RISE_PERIOD rows rather than every single row, and the
+// size pattern repeats on exactly that period. Keying size to the raw row index
+// made each coin jump to its neighbour's size at every wrap, which read as the
+// coins resizing mid-flight.
+const RISE_PERIOD_03 = 2;
+const RISE_WRAP_03 = RISE_PERIOD_03 * RISE_ROW_H_03;
+const RISE_TOP_03 = -VENN_R_03 - RISE_WRAP_03;
+const RISE_ROWS_03 =
+  Math.ceil((2 * VENN_R_03 + 2 * RISE_WRAP_03) / RISE_ROW_H_03) + 1;
+// Mixed sizes so it reads as loose change rather than a printed grid.
+const COIN_SIZES_03 = [8, 5.5, 7, 9, 6, 7.5];
+const coinR03 = (col: number, row: number) =>
+  COIN_SIZES_03[
+    (col * 5 + (row % RISE_PERIOD_03) * 7) % COIN_SIZES_03.length
+  ];
+const MIDDLE_RX_03 = 26;
+const MIDDLE_RY_03 = 42;
 const CURSOR_R_03 = 8;
-const COMP_H_03 = 132;
-const COMP_W_03 = 200;
+const COMP_H_03 = 124;
+const COMP_W_03 = 196;
 const TEXTBLOCK_03 = 48;
 
 export function Illus03() {
@@ -780,6 +830,7 @@ export function Illus03() {
   const clipLRef = useRef<SVGCircleElement>(null);
   const clipRRef = useRef<SVGCircleElement>(null);
   const riseRef = useRef<SVGGElement>(null);
+  const riseColRefs = useRef<(SVGGElement | null)[]>([]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -791,28 +842,26 @@ export function Illus03() {
     const clipL = clipLRef.current;
     const clipR = clipRRef.current;
     const rise = riseRef.current;
-    if (
-      !root || !svg || !group || !cursor || !left || !right ||
-      !clipL || !clipR || !rise
-    )
-      return;
+    if (!root || !svg || !group || !cursor || !left || !right) return;
+    if (!clipL || !clipR || !rise) return;
 
     let raf = 0;
     let inside = false;
-    let settled = true;
+    let joined = false;
     let c: Center = { Cx: D.w / 2, Cy: 0, s: 1 };
     let rect = root.getBoundingClientRect();
     const cur = { x: 0, y: -70 };
     const tgt = { x: 0, y: -70 };
-    let t = 0; // convergence
-    let riseOpacity = 0;
-    let riseOffset = 0;
-    let joined = false;
+    // Spring so the two land together with a little snap instead of gliding.
+    const m = { t: 0 };
+    const mv = { t: 0 };
+    const mt = { t: 0 };
+    const riseOffsets = RISE_COLS_03.map(() => 0);
 
     const layout = () => {
-      const m = measure(root, COMP_H_03, COMP_W_03, TEXTBLOCK_03);
-      c = { Cx: m.Cx, Cy: m.Cy, s: m.s };
-      svg.setAttribute("viewBox", `0 0 ${m.dims.w} ${m.dims.h}`);
+      const mm = measure(root, COMP_H_03, COMP_W_03, TEXTBLOCK_03);
+      c = { Cx: mm.Cx, Cy: mm.Cy, s: mm.s };
+      svg.setAttribute("viewBox", `0 0 ${mm.dims.w} ${mm.dims.h}`);
       group.setAttribute("transform", `translate(${c.Cx} ${c.Cy}) scale(${c.s})`);
     };
 
@@ -821,36 +870,48 @@ export function Illus03() {
       cur.y += (tgt.y - cur.y) * K;
       cursor.setAttribute("transform", `translate(${cur.x} ${cur.y})`);
 
-      // Armed only while the pointer is inside the shared middle.
       const inMiddle =
         inside &&
         (cur.x / MIDDLE_RX_03) ** 2 + (cur.y / MIDDLE_RY_03) ** 2 < 1;
-      t += ((inMiddle ? 1 : 0) - t) * CONVERGE_EASE_03;
+      mt.t = inMiddle ? 1 : 0;
+      spring(m, mv, mt, "t");
+      const t = clamp(m.t, 0, 1.15); // allow a touch of overshoot
 
-      const sep = lerp(SEP_REST_03, SEP_MIN_03, t);
+      // Circles ride all the way together — at t=1 they are one circle.
+      const sep = lerp(SEP_REST_03, 0, t);
       left.setAttribute("cx", (-sep).toFixed(2));
       right.setAttribute("cx", sep.toFixed(2));
-      // Two nested clips → the waves show only in the exact intersection.
       clipL.setAttribute("cx", (-sep).toFixed(2));
       clipR.setAttribute("cx", sep.toFixed(2));
 
       if (inside) {
-        riseOffset -= RISE_SPEED_03;
-        if (riseOffset <= -RISE_ROW_H_03) riseOffset += RISE_ROW_H_03;
-        rise.setAttribute("transform", `translate(0 ${riseOffset.toFixed(2)})`);
+        for (let i = 0; i < riseOffsets.length; i++) {
+          riseOffsets[i] -= RISE_SPEEDS_03[i % RISE_SPEEDS_03.length];
+          if (riseOffsets[i] <= -RISE_WRAP_03) riseOffsets[i] += RISE_WRAP_03;
+          const el = riseColRefs.current[i];
+          if (el) {
+            el.setAttribute(
+              "transform",
+              `translate(0 ${riseOffsets[i].toFixed(2)})`,
+            );
+          }
+        }
       }
-      riseOpacity += ((inMiddle ? 1 : 0) - riseOpacity) * RISE_EASE_03;
-      rise.style.opacity = riseOpacity.toFixed(3);
+      rise.style.opacity = clamp(m.t, 0, 1).toFixed(3);
 
-      const on = t > 0.5;
+      // Once the two are one, the ring would just sit between the marks and
+      // compete with them — so it retires as the merge completes.
+      if (inside) cursor.style.opacity = clamp(1 - m.t * 1.4, 0, 1).toFixed(3);
+
+      const on = m.t > 0.5;
       if (on !== joined) {
         joined = on;
         left.setAttribute("stroke", on ? CHERRY : CHARCOAL);
         right.setAttribute("stroke", on ? CHERRY : CHARCOAL);
       }
 
-      settled = !inside && t < 0.004 && riseOpacity < 0.004;
-      if (inside || !settled) {
+      const moving = Math.abs(mv.t) > 0.0015 || Math.abs(mt.t - m.t) > 0.002;
+      if (inside || moving) {
         raf = requestAnimationFrame(frame);
       } else {
         raf = 0;
@@ -864,7 +925,6 @@ export function Illus03() {
 
     const onEnter = (e: PointerEvent) => {
       inside = true;
-      settled = false;
       rect = root.getBoundingClientRect();
       const p = toLocal(e);
       cur.x = p.x;
@@ -924,7 +984,7 @@ export function Illus03() {
         groupRef={groupRef}
         initial={initialTransform(COMP_H_03, COMP_W_03, TEXTBLOCK_03)}
       >
-        {/* Nested clips: left circle ∩ right circle === the shared ground. */}
+        {/* Shared ground — grows from the rest lens to the whole merged circle. */}
         <clipPath id={CLIP_L_ID_03}>
           <circle ref={clipLRef} cx={-SEP_REST_03} cy={0} r={VENN_R_03} />
         </clipPath>
@@ -937,39 +997,40 @@ export function Illus03() {
               ref={riseRef}
               style={{ opacity: 0, willChange: "opacity, transform" }}
             >
-              {RISE_COLS_03.map((x, col) =>
-                Array.from({ length: RISE_ROWS_03 }).map((_, row) => (
-                  <text
-                    key={`${col}-${row}`}
-                    x={x}
-                    // Odd columns sit half a row down so the field reads as
-                    // texture rather than a marching grid.
-                    y={
-                      RISE_TOP_03 +
-                      row * RISE_ROW_H_03 +
-                      (col % 2 ? RISE_ROW_H_03 / 2 : 0)
-                    }
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill={CHERRY}
-                    stroke="none"
-                    fontSize={GLYPH_SIZE_03}
-                    fontFamily="var(--font-jetbrains-mono), monospace"
-                  >
-                    $
-                  </text>
-                )),
-              )}
+              {RISE_COLS_03.map((x, col) => (
+                <g
+                  key={col}
+                  ref={(el) => {
+                    riseColRefs.current[col] = el;
+                  }}
+                  style={{ willChange: "transform" }}
+                >
+                  {Array.from({ length: RISE_ROWS_03 }).map((_, row) => (
+                    <circle
+                      key={row}
+                      cx={x}
+                      cy={
+                        RISE_TOP_03 +
+                        row * RISE_ROW_H_03 +
+                        (col % 2 ? RISE_ROW_H_03 / 2 : 0)
+                      }
+                      r={coinR03(col, row)}
+                      fill={CHERRY}
+                      stroke="none"
+                    />
+                  ))}
+                </g>
+              ))}
             </g>
           </g>
         </g>
-        {/* What users need. */}
+        {/* Who you're designing for. */}
         <circle
           ref={leftRef}
           cx={-SEP_REST_03}
           cy={0}
           r={VENN_R_03}
-          style={{ transition: "stroke 150ms ease", willChange: "cx" }}
+          style={{ transition: "stroke 120ms ease", willChange: "cx" }}
         />
         {/* What the business needs. */}
         <circle
@@ -977,7 +1038,7 @@ export function Illus03() {
           cx={SEP_REST_03}
           cy={0}
           r={VENN_R_03}
-          style={{ transition: "stroke 150ms ease", willChange: "cx" }}
+          style={{ transition: "stroke 120ms ease", willChange: "cx" }}
         />
         <circle
           ref={cursorRef}
